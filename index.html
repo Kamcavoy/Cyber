@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyber Security Lab – Interactive Learning</title>
+    <style>
+        /* ─── ROOT FONT SIZE ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEMES ─── */
+        :root {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 20, 40, 0.12);
+            --shadow-hover: 0 1.5rem 4rem rgba(0, 20, 40, 0.18);
+            --bg-input: #fafcfe;
+            --bg-score: #f2f8ff;
+            --accent-blue: #2b6a9e;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-orange: #c97a2a;
+            --accent-purple: #6a3e8a;
+            --gradient-header: linear-gradient(145deg, #0b2b4a, #1a4a6e);
+            --radius-card: 2rem;
+            --transition: 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121a24;
+            --bg-card: #1e2a36;
+            --text-primary: #e8edf2;
+            --text-secondary: #c8d4e0;
+            --text-muted: #8fa4b8;
+            --border-light: #3a4a5a;
+            --border-focus: #6a9ec8;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 0, 0, 0.5);
+            --shadow-hover: 0 1.5rem 4.5rem rgba(0, 0, 0, 0.7);
+            --bg-input: #24303e;
+            --bg-score: #1f2d3d;
+            --accent-blue: #6a9ec8;
+            --accent-green: #4cc090;
+            --accent-red: #e07060;
+            --accent-orange: #e8b040;
+            --accent-purple: #bc8cff;
+            --gradient-header: linear-gradient(145deg, #4a7a9e, #6a9ec8);
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem;
+            transition: background var(--transition), color var(--transition);
+            line-height: 1.5;
+        }
+
+        .card {
+            max-width: 58rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2.1rem;
+            box-shadow: var(--shadow-card);
+            transition: background var(--transition), box-shadow var(--transition);
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand .icon {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+        .brand h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background var(--transition), border-color var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.4rem;
+        }
+        .accessibility-controls button:hover {
+            background: var(--border-light);
+        }
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .accessibility-controls .text-size-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.9rem;
+            min-width: 2.2rem;
+            justify-content: center;
+        }
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        .sub {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+            max-width: 42rem;
+        }
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── TOOL GRID ─── */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+            margin: 1.2rem 0;
+        }
+
+        .tool-card {
+            background: var(--bg-input);
+            border-radius: 1.2rem;
+            padding: 1.4rem 1.2rem;
+            border: 1px solid var(--border-light);
+            transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .tool-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-0.2rem);
+            box-shadow: var(--shadow-hover);
+        }
+        .tool-card:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        .tool-card .tool-icon {
+            font-size: 2.8rem;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .tool-card .tool-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+        .tool-card .tool-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+            margin-bottom: 0.6rem;
+        }
+        .tool-card .tool-badge {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            font-weight: 700;
+            color: #fff;
+            background: var(--accent-blue);
+            padding: 0.15rem 0.8rem;
+            border-radius: 2rem;
+            display: inline-block;
+        }
+        .tool-card .tool-badge.green {
+            background: var(--accent-green);
+        }
+        .tool-card .tool-badge.orange {
+            background: var(--accent-orange);
+            color: #1a1a1a;
+        }
+        .tool-card .tool-badge.red {
+            background: var(--accent-red);
+        }
+        .tool-card .tool-badge.purple {
+            background: var(--accent-purple);
+        }
+        .tool-card .tool-badge.pink {
+            background: #d63384;
+        }
+
+        /* ─── MAP SECTION ─── */
+        .map-section {
+            margin-top: 2rem;
+            padding-top: 1.8rem;
+            border-top: 2px solid var(--border-light);
+        }
+        .map-section h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .map-section h2 .map-icon {
+            font-size: 1.8rem;
+        }
+        .map-section .map-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .map-container {
+            position: relative;
+            width: 100%;
+            border-radius: 1.2rem;
+            overflow: hidden;
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-card);
+            transition: background var(--transition);
+        }
+        .map-container iframe {
+            display: block;
+            width: 100%;
+            height: 520px;
+            border: 0;
+        }
+        .map-attribution {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 0.3rem;
+            padding-right: 0.2rem;
+        }
+        .map-attribution a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+        .map-attribution a:hover {
+            text-decoration: underline;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1.1rem 0.9rem;
+                border-radius: 1.5rem;
+            }
+            .brand h1 {
+                font-size: 1.3rem;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+            .tool-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+            .tool-card {
+                padding: 1rem 0.8rem;
+            }
+            .tool-card .tool-icon {
+                font-size: 2rem;
+            }
+            .tool-card .tool-name {
+                font-size: 0.9rem;
+            }
+            .map-container iframe {
+                height: 380px;
+            }
+            .map-section h2 {
+                font-size: 1.1rem;
+            }
+        }
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.8rem 0.6rem;
+            }
+            .tool-grid {
+                grid-template-columns: 1fr;
+                gap: 0.7rem;
+            }
+            .brand h1 {
+                font-size: 1.1rem;
+            }
+            .accessibility-controls button {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+                min-height: 2rem;
+            }
+            .map-container iframe {
+                height: 280px;
+            }
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" role="main" aria-label="Cyber Security Lab – Interactive Learning">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🛡️</span>
+                <h1>Cyber Security Lab</h1>
+            </div>
+            <div class="accessibility-controls">
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">🌙</span> <span id="darkLabel">Dark</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>Welcome to the Cyber Security Lab!</strong> Explore these interactive tools to learn about password security, phishing, encryption, ransomware, social engineering, and more. Each simulator gives you hands‑on experience with real‑world cyber threats and defences.
+        </div>
+
+        <!-- TOOL GRID -->
+        <div class="tool-grid">
+
+            <!-- 1. Password Strength -->
+            <a href="PasswordChecker.html" class="tool-card" aria-label="Launch Password Strength Calculator">
+                <span class="tool-icon">🛡️</span>
+                <span class="tool-name">Password Strength</span>
+                <span class="tool-desc">Test passwords &amp; learn what makes them strong or weak.</span>
+                <span class="tool-badge green">Interactive</span>
+            </a>
+
+            <!-- 2. Phishing Simulator -->
+            <a href="PhishingSimulator.html" class="tool-card" aria-label="Launch Phishing Simulator">
+                <span class="tool-icon">🎣</span>
+                <span class="tool-name">Phishing Simulator</span>
+                <span class="tool-desc">Spot fake emails, SMS, and social media scams.</span>
+                <span class="tool-badge red">16 Scenarios</span>
+            </a>
+
+            <!-- 3. Brute Force Simulator -->
+            <a href="BruteForceSimulator.html" class="tool-card" aria-label="Launch Brute Force Simulator">
+                <span class="tool-icon">🔓</span>
+                <span class="tool-name">Brute Force</span>
+                <span class="tool-desc">Watch how attackers crack passwords by trying every combination.</span>
+                <span class="tool-badge orange">Real‑time</span>
+            </a>
+
+            <!-- 4. Password Manager Showdown -->
+            <a href="PasswordManagerShowdown.html" class="tool-card" aria-label="Launch Password Manager Showdown">
+                <span class="tool-icon">🔐</span>
+                <span class="tool-name">Manager Showdown</span>
+                <span class="tool-desc">Compare reusing passwords vs. using a password manager.</span>
+                <span class="tool-badge purple">Simulation</span>
+            </a>
+
+            <!-- 5. Crypto Playground -->
+            <a href="CryptoPlayground.html" class="tool-card" aria-label="Launch Crypto Playground">
+                <span class="tool-icon">🔑</span>
+                <span class="tool-name">Crypto Playground</span>
+                <span class="tool-desc">Encrypt &amp; decrypt messages with Caesar and AES.</span>
+                <span class="tool-badge blue">Hands‑on</span>
+            </a>
+
+            <!-- 6. Ransomware Simulator -->
+            <a href="RansomwareSimulator.html" class="tool-card" aria-label="Launch Ransomware Simulator">
+                <span class="tool-icon">🦠</span>
+                <span class="tool-name">Ransomware Simulator</span>
+                <span class="tool-desc">Lead incident response – decide whether to pay, restore, or fight back.</span>
+                <span class="tool-badge red">Decision‑based</span>
+            </a>
+
+            <!-- 7. Social Engineering Challenge -->
+            <a href="SocialEngineering.html" class="tool-card" aria-label="Launch Social Engineering Challenge">
+                <span class="tool-icon">🎭</span>
+                <span class="tool-name">Social Engineering</span>
+                <span class="tool-desc">Spot manipulation tactics – vishing, tailgating, pretexting &amp; more.</span>
+                <span class="tool-badge pink">6 Scenarios</span>
+            </a>
+
+            <!-- 8. Router Attack Simulator -->
+            <a href="routerAttackSimulator.html" class="tool-card" aria-label="Launch Router Attack Simulator">
+                <span class="tool-icon">⚡</span>
+                <span class="tool-name">Router Attack</span>
+                <span class="tool-desc">Configure a router's defences and see if the hacker breaks in.</span>
+                <span class="tool-badge orange">Attack Simulation</span>
+            </a>
+
+            <!-- 9. Router Investigator -->
+            <a href="routerInvestigator.html" class="tool-card" aria-label="Launch Router Investigator">
+                <span class="tool-icon">🔍</span>
+                <span class="tool-name">Router Investigator</span>
+                <span class="tool-desc">Spot the physical weaknesses on a real café router.</span>
+                <span class="tool-badge blue">Spot the Weakness</span>
+            </a>
+
+        </div>
+
+        <!-- LIVE THREAT MAP -->
+        <div class="map-section">
+            <h2>
+                <span class="map-icon">🌍</span> Live Cyber Threat Map
+            </h2>
+            <div class="map-sub">
+                Real‑time visualization of global cyber attacks, powered by <strong>Kaspersky</strong>.
+                See attacks happening right now across the world.
+            </div>
+            <div class="map-container">
+                <iframe
+                src="https://cybermap.kaspersky.com/en/widget/dynamic/dark"
+                frameborder="0"
+                allowfullscreen
+                loading="lazy"
+                title="Kaspersky CyberMap Live Threat Map"
+                ></iframe>
+            </div>
+            <div class="map-attribution">
+                Data provided by <a href="https://cybermap.kaspersky.com" target="_blank" rel="noopener noreferrer">Kaspersky CyberMap</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            🧑‍🏫 Designed for introductory cyber security education &bull; All tools work offline &bull; <span id="currentYear"></span>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+            let darkMode = false;
+
+            const savedTheme = localStorage.getItem('cyberlab-theme');
+            if (savedTheme === 'dark') {
+                darkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkIcon.textContent = '☀️';
+                darkLabel.textContent = 'Light';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                darkIcon.textContent = '🌙';
+                darkLabel.textContent = 'Dark';
+            }
+
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                localStorage.setItem('cyberlab-theme', darkMode ? 'dark' : 'light');
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            // ─── TEXT SIZE ───
+            const htmlEl = document.documentElement;
+
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+                localStorage.setItem('cyberlab-text-size', sizeClass);
+            }
+
+            const savedSize = localStorage.getItem('cyberlab-text-size');
+            if (savedSize) setTextSize(savedSize);
+
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── FOOTER YEAR ───
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            console.log('🛡️ Cyber Security Lab loaded with 9 tools + live threat map!');
+        })();
+    </script>
+
+</body>
+</html>
