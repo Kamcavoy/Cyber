@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeanNet Café — Router Simulator</title>
+<style>
+  :root {
+    --bg: #1e1e24;
+    --panel: #2a2a32;
+    --panel2: #34343e;
+    --accent: #c9d18f;
+    --danger: #e06c6c;
+    --ok: #7fc78a;
+    --warn: #e0b96c;
+    --text: #e8e8ec;
+    --muted: #9a9aa8;
+    --hacker-hood: #2b2b38;
+    --hacker-face: #e8d5c0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    padding: 16px 24px; background: #15151a;
+    border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { font-size: 18px; margin: 0; letter-spacing: 0.5px; }
+  header .badge { font-size: 12px; color: var(--muted); }
+  .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0; min-height: calc(100vh - 60px); }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .router { padding: 20px; border-right: 1px solid #333; overflow-y: auto; }
+  .router h2 { margin: 0 0 4px; font-size: 16px; }
+  .router p.sub { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+  .setting {
+    background: var(--panel); border: 1px solid #3a3a44; border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 12px; position: relative;
+  }
+  .setting .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .setting .labelrow { display: flex; align-items: center; gap: 8px; }
+  .setting label { font-size: 14px; font-weight: 600; display: block; }
+  .setting .hint { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  select, input[type=text] {
+    background: var(--panel2); color: var(--text); border: 1px solid #4a4a58;
+    border-radius: 6px; padding: 8px 10px; font-size: 13px; min-width: 140px;
+  }
+  select:focus, input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .toggle {
+    position: relative; width: 48px; height: 26px; border-radius: 13px;
+    background: #4a4a58; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(22px); }
+
+  .hint-btn {
+    width: 20px; height: 20px; border-radius: 50%; border: 1px solid #5a5a68;
+    background: transparent; color: var(--muted); font-size: 12px; font-weight: 700;
+    cursor: help; display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1; padding: 0; flex-shrink: 0;
+  }
+  .hint-btn:hover, .hint-btn:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+  .tooltip {
+    position: absolute; z-index: 20; top: calc(100% + 6px); left: 16px; right: 16px;
+    background: #101018; border: 1px solid var(--accent); border-radius: 8px;
+    padding: 10px 12px; font-size: 12px; line-height: 1.5; color: var(--text);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: none;
+  }
+  .tooltip.show { display: block; animation: fadeIn 0.15s ease; }
+  .tooltip::before {
+    content: ""; position: absolute; top: -6px; left: 18px;
+    border-width: 6px; border-style: solid;
+    border-color: transparent transparent var(--accent) transparent;
+  }
+  .tooltip .quote { font-style: italic; color: #d8dcb0; }
+
+  .btn {
+    background: var(--accent); color: #1a1a1a; border: none; border-radius: 8px;
+    padding: 12px 20px; font-size: 15px; font-weight: 700; cursor: pointer;
+    width: 100%; margin-top: 8px; transition: filter 0.15s;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.secondary { background: var(--panel2); color: var(--text); border: 1px solid #4a4a58; }
+  .btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .hacker {
+    background: radial-gradient(circle at 50% 30%, #1b1b26 0%, #0d0d13 70%);
+    padding: 20px; display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .hacker h2 { margin: 0 0 4px; font-size: 16px; color: var(--danger); }
+  .hacker p.sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+  .stage {
+    flex: 1; min-height: 300px; position: relative; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+  }
+  .hacker-figure {
+    position: relative; width: 140px; height: 180px; transition: transform 0.3s;
+  }
+  .hacker-figure.typing { animation: bob 0.6s infinite alternate; }
+  .hacker-figure.win { animation: jump 0.5s ease 2; }
+  .hacker-figure.lose { animation: slump 0.8s ease forwards; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+  @keyframes jump {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(-30px) rotate(-6deg); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes slump {
+    0% { transform: translateY(0) rotate(0); }
+    100% { transform: translateY(20px) rotate(12deg); }
+  }
+  .hood {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 120px; border-radius: 60px 60px 8px 8px;
+    background: var(--hacker-hood);
+  }
+  .face {
+    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
+    width: 70px; height: 70px; border-radius: 50%; background: var(--hacker-face);
+    overflow: hidden;
+  }
+  .eye {
+    position: absolute; top: 24px; width: 16px; height: 16px;
+    border-radius: 50%; background: #1a1a1a; transition: all 0.2s;
+  }
+  .eye.left { left: 14px; }
+  .eye.right { right: 14px; }
+  .eye.typing { top: 28px; height: 6px; border-radius: 3px; width: 18px; background: #3a3a3a; }
+  .eye.win { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+  .eye.lose { top: 30px; height: 3px; border-radius: 2px; background: #555; }
+  .mouth {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 6px; border-radius: 0 0 12px 12px;
+    background: #8a5a5a; transition: all 0.2s;
+  }
+  .mouth.win { width: 34px; height: 16px; background: #8a2a2a; border-radius: 0 0 17px 17px; }
+  .mouth.lose { width: 20px; height: 5px; border-radius: 5px 5px 0 0; background: #7a4a4a; transform: translateX(-50%) translateY(3px); }
+  .body {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 70px; border-radius: 30px 30px 10px 10px;
+    background: var(--hacker-hood);
+  }
+  .hoodie-string {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 2px; background: #555; opacity: 0.6;
+  }
+  .laptop {
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 46px;
+  }
+  .laptop .screen {
+    width: 100%; height: 36px; border-radius: 4px 4px 0 0;
+    background: #0a0a0d; border: 2px solid #333;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, monospace; font-size: 9px; color: var(--ok);
+    overflow: hidden;
+  }
+  .laptop .base { width: 110%; margin-left: -5%; height: 6px; background: #444; border-radius: 0 0 6px 6px; }
+  .laptop .screen .typing-line::after {
+    content: "▋"; animation: blink 0.8s infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .bubble {
+    margin-top: 14px; min-height: 46px; max-width: 92%;
+    background: #f2f2e8; color: #222; padding: 10px 14px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.45; position: relative;
+    text-align: center; transition: opacity 0.25s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  }
+  .bubble::after {
+    content: ""; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    border-width: 8px; border-style: solid;
+    border-color: transparent transparent #f2f2e8 transparent;
+  }
+  .bubble.hidden { opacity: 0; }
+  .bubble b { color: #8a2a2a; }
+
+  .verdict {
+    margin-top: 12px; padding: 14px 16px; border-radius: 10px; font-size: 14px;
+    line-height: 1.55; display: none; animation: fadeIn 0.3s ease; width: 100%;
+  }
+  .verdict.fail { background: rgba(224,108,108,0.12); border: 1px solid var(--danger); }
+  .verdict.pass { background: rgba(127,199,138,0.12); border: 1px solid var(--ok); }
+  .verdict h3 { margin: 0 0 6px; font-size: 16px; }
+  .verdict ul { margin: 8px 0 0; padding-left: 18px; }
+  .verdict li { margin-bottom: 4px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .scorebar { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    background: var(--panel); border: 1px solid #3a3a44; color: var(--muted);
+  }
+  .chip.bad { border-color: var(--danger); color: var(--danger); }
+  .chip.good { border-color: var(--ok); color: var(--ok); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ BeanNet Café — Router Simulator</h1>
+  <span class="badge">Lab environment · no real hardware</span>
+</header>
+
+<div class="layout">
+
+  <section class="router">
+    <h2>Router Admin Panel</h2>
+    <p class="sub">Configure the WLAN, then launch the attack simulation to see the impact.</p>
+
+    <!-- SSID -->
+    <div class="setting" data-hint="ssid">
+      <div class="row">
+        <div>
+          <div class="labelrow">
+            <label>Broadcast SSID</label>
+            <button class="hint-btn" aria-label="Hint for Broadcast SSID">?</button>
+          </div>
+          <div class="hint">When off, the network name is hidden from casual discovery.</div>
+        </div>
+        <div class="toggle on" id="t-ssid" role="switch" aria-checked="true" tabindex="0"></div>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"Conceals the network name from casual discovery, reducing the casual attack surface and making your network less visible to opportunistic attackers."</span><br>
+        <strong>Bottom line:</strong> "SSID hiding adds obscurity, not real security."
+      </div>
+    </div>
+
+    <!-- Encryption -->
+    <div class="setting" data-hint="enc">
+      <div class="row">
+        <div style="flex:1">
+          <div class="labelrow">
+            <label for="enc">Encryption Mode</label>
+            <button class="hint-btn" aria-label="Hint for Encryption Mode">?</button>
+          </div>
+          <div class="hint">WEP is obsolete. WPA2-AES is the recommended baseline.</div>
+        </div>
+        <select id="enc">
+          <option value="WEP">WEP (obsolete)</option>
+          <option value="WPA">WPA (legacy)</option>
+          <option value="WPA2" selected>WPA2 – AES</option>
+          <option value="WPA3">WPA3</option>
+        </select>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"WEP: Uses weak, easily crackable encryption keys. Can be bypassed by attackers in minutes."</span><br>
+        <span class="quote">"WPA2: Employs robust AES encryption for strong data protection. Highly secure when used with a strong, complex passphrase."</span><br>
+        <strong>Best practice:</strong> "Always configure your network to use WPA2-Personal (or Enterprise) with AES encryption, or upgrade to WPA3 for enhanced security."
+      </div>
+    </div>
+
+    <!-- Passphrase -->
+    <div class="setting" data-hint="pw">
+      <div class="row">
+        <div style="flex:1">
+          <div class="labelrow">
+            <label for="pw">Wi-Fi Passphrase</label>
+            <button class="hint-btn" aria-label="Hint for Wi-Fi passphrase">?</button>
+          </div>
+          <div class="hint">12+ characters, mixed case, numbers &amp; symbols.</div>
+        </div>
+        <input type="text" id="pw" value="admin123" spellcheck="false" />
+      </div>
+      <div class="tooltip">
+        <span class="quote">"Choose unique passphrases that are long (at least 12 characters), mix uppercase and lowercase letters, numbers, and symbols."</span><br>
+        <strong>Weak passphrases</strong> are matched quickly by offline dictionary attacks.
+      </div>
+    </div>
+
+    <!-- WPS -->
+    <div class="setting" data-hint="wps">
+      <div class="row">
+        <div>
+          <div class="labelrow">
+            <label>WPS (Wi-Fi Protected Setup)</label>
+            <button class="hint-btn" aria-label="Hint for WPS">?</button>
+          </div>
+          <div class="hint">PIN-based pairing is brute-forceable. Best left disabled.</div>
+        </div>
+        <div class="toggle on" id="t-wps" role="switch" aria-checked="true" tabindex="0"></div>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"PINs are vulnerable to brute-force attacks. Often enabled by default, creating a significant backdoor."</span><br>
+        <strong>Best practice:</strong> "Disable WPS on routers to prevent attackers from gaining easy access through this weak point."
+      </div>
+    </div>
+
+    <!-- MAC -->
+    <div class="setting" data-hint="mac">
+      <div class="row">
+        <div>
+          <div class="labelrow">
+            <label>MAC Address Filtering</label>
+            <button class="hint-btn" aria-label="Hint for MAC filtering">?</button>
+          </div>
+          <div class="hint">Allowlist of known devices. Easily spoofed, but adds friction.</div>
+        </div>
+        <div class="toggle" id="t-mac" role="switch" aria-checked="false" tabindex="0"></div>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"The router maintains a list of approved MAC addresses. Only devices on this list can connect."</span><br>
+        <span class="quote">"Easy to spoof (attackers can mimic MAC addresses). Not practical for large networks."</span><br>
+        <strong>Limitation:</strong> "Both methods can be bypassed by skilled attackers using MAC spoofing or network scanning tools."
+      </div>
+    </div>
+
+    <!-- Guest -->
+    <div class="setting" data-hint="guest">
+      <div class="row">
+        <div>
+          <div class="labelrow">
+            <label>Guest Network</label>
+            <button class="hint-btn" aria-label="Hint for guest network">?</button>
+          </div>
+          <div class="hint">Isolates customers from internal café systems.</div>
+        </div>
+        <div class="toggle" id="t-guest" role="switch" aria-checked="false" tabindex="0"></div>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"Isolate guest networks from critical internal systems to limit potential breaches and contain threats."</span>
+      </div>
+    </div>
+
+    <!-- Firmware -->
+    <div class="setting" data-hint="firm">
+      <div class="row">
+        <div>
+          <div class="labelrow">
+            <label>Router Firmware</label>
+            <button class="hint-btn" aria-label="Hint for firmware">?</button>
+          </div>
+          <div class="hint">Outdated firmware carries known exploits.</div>
+        </div>
+        <div class="toggle" id="t-firm" role="switch" aria-checked="false" tabindex="0"></div>
+      </div>
+      <div class="tooltip">
+        <span class="quote">"Regularly check for and apply firmware updates from your router manufacturer to patch known vulnerabilities and improve performance."</span>
+      </div>
+    </div>
+
+    <!-- Admin password -->
+    <div class="setting" data-hint="adminpw">
+      <div class="row">
+        <div style="flex:1">
+          <div class="labelrow">
+            <label for="adminpw">Admin Password</label>
+            <button class="hint-btn" aria-label="Hint for admin password">?</button>
+          </div>
+          <div class="hint">Default credentials are the first thing attackers try.</div>
+        </div>
+        <input type="text" id="adminpw" value="admin" spellcheck="false" />
+      </div>
+      <div class="tooltip">
+        <span class="quote">"Default admin credentials allow unauthorised access to router settings for malicious changes."</span><br>
+        <strong>Recommendation:</strong> "Change to a strong, unique administrator password."
+      </div>
+    </div>
+
+    <button class="btn" id="attackBtn">⚡ Launch Attack Simulation</button>
+    <button class="btn secondary" id="resetBtn">Reset to BeanNet defaults</button>
+  </section>
+
+  <section class="hacker">
+    <h2>Attacker</h2>
+    <p class="sub">The cartoon hacker probes your WLAN. Watch what he can crack.</p>
+
+    <div class="stage">
+      <div class="hacker-figure" id="hackerFig">
+        <div class="hood"></div>
+        <div class="face">
+          <div class="eye left" id="eyeL"></div>
+          <div class="eye right" id="eyeR"></div>
+          <div class="mouth" id="mouth"></div>
+        </div>
+        <div class="body"></div>
+        <div class="hoodie-string"></div>
+        <div class="laptop">
+          <div class="screen"><span id="screenText">$&nbsp;</span></div>
+          <div class="base"></div>
+        </div>
+      </div>
+      <div class="bubble hidden" id="bubble"></div>
+    </div>
+
+    <div class="verdict" id="verdict"></div>
+    <div class="scorebar" id="scorebar"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const state = {
+    ssidVisible: true,
+    encryption: "WPA2",
+    passphrase: "admin123",
+    wps: true,
+    macFiltering: false,
+    guestNetwork: false,
+    firmwareUpdated: false,
+    adminPassword: "admin",
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- hint tooltips ----------
+  document.querySelectorAll(".setting[data-hint]").forEach(function (setting) {
+    const btn = setting.querySelector(".hint-btn");
+    const tip = setting.querySelector(".tooltip");
+    if (!btn || !tip) return;
+    function open() { tip.classList.add("show"); }
+    function close() { tip.classList.remove("show"); }
+    btn.addEventListener("mouseenter", open);
+    btn.addEventListener("focus", open);
+    btn.addEventListener("mouseleave", close);
+    btn.addEventListener("blur", close);
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      tip.classList.toggle("show");
+    });
+    document.addEventListener("click", function (e) {
+      if (!setting.contains(e.target)) close();
+    });
+  });
+
+  // ---------- toggles ----------
+  const toggles = [
+    ["t-ssid", "ssidVisible"],
+    ["t-wps", "wps"],
+    ["t-mac", "macFiltering"],
+    ["t-guest", "guestNetwork"],
+    ["t-firm", "firmwareUpdated"],
+  ];
+
+  function syncToggle(el, on) {
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-checked", String(on));
+  }
+
+  toggles.forEach(function (pair) {
+    const id = pair[0], key = pair[1];
+    const el = $(id);
+    syncToggle(el, state[key]);
+    function flip() {
+      state[key] = !state[key];
+      syncToggle(el, state[key]);
+    }
+    el.addEventListener("click", flip);
+    el.addEventListener("keydown", function (e) {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+    });
+  });
+
+  $("enc").addEventListener("change", function (e) { state.encryption = e.target.value; });
+  $("pw").addEventListener("input", function (e) { state.passphrase = e.target.value; });
+  $("adminpw").addEventListener("input", function (e) { state.adminPassword = e.target.value; });
+
+  // ---------- helpers ----------
+  const sleep = (ms) => new Promise(function (r) { setTimeout(r, ms); });
+
+  function passphraseScore(pw) {
+    if (!pw || pw.length < 8) return 0;
+    let s = 1;
+    if (pw.length >= 12) s++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw) && /\d/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return Math.min(3, s);
+  }
+
+  // ---------- analyse() — unchanged ----------
+  function analyse() {
+    const s = state;
+    const findings = [];
+
+    if (s.encryption === "WEP") findings.push({ severity: "critical", text: "WEP encryption cracked in seconds — traffic decrypted." });
+    if (s.encryption === "WPA") findings.push({ severity: "high", text: "Legacy WPA handshake captured; offline dictionary attack feasible." });
+    if (s.wps) findings.push({ severity: "critical", text: "WPS PIN brute-forced — network key recovered, no passphrase needed." });
+    if (passphraseScore(s.passphrase) < 2) findings.push({ severity: "high", text: "Weak Wi-Fi passphrase — offline cracking dictionary matched." });
+    if (s.adminPassword.trim().toLowerCase() === "admin" || s.adminPassword.length < 8) findings.push({ severity: "critical", text: "Default/admin password accepted — router admin panel compromised." });
+    if (s.macFiltering) findings.push({ severity: "info", text: "MAC allowlist detected — MAC spoofed from captured probe frame." });
+    if (!s.ssidVisible) findings.push({ severity: "info", text: "SSID hidden — probe request frames revealed the network name anyway." });
+    if (!s.firmwareUpdated) findings.push({ severity: "high", text: "Outdated firmware — known CVE exploited for remote access." });
+    if (!s.guestNetwork) findings.push({ severity: "info", text: "No guest network — customer traffic shares the main segment." });
+
+    const critical = findings.filter(function (f) { return f.severity === "critical"; }).length;
+    const high = findings.filter(function (f) { return f.severity === "high"; }).length;
+    const info = findings.filter(function (f) { return f.severity === "info"; }).length;
+    const breached = critical > 0 || high >= 2;
+
+    return { findings: findings, critical: critical, high: high, info: info, breached: breached };
+  }
+
+  // ---------- cartoon renderer ----------
+  const fig = $("hackerFig");
+  const eyeL = $("eyeL"), eyeR = $("eyeR");
+  const mouth = $("mouth");
+  const bubble = $("bubble");
+  const screenText = $("screenText");
+
+  function setFace(mode) {
+    eyeL.className = "eye left " + (mode === "win" ? "win" : mode === "lose" ? "lose" : mode === "typing" ? "typing" : "");
+    eyeR.className = "eye right " + (mode === "win" ? "win" : mode === "lose" ? "lose" : mode === "typing" ? "typing" : "");
+    mouth.className = "mouth " + (mode === "win" ? "win" : mode === "lose" ? "lose" : "");
+  }
+
+  function setFigure(mode) {
+    fig.className = "hacker-figure " + (mode === "win" ? "win" : mode === "lose" ? "lose" : mode === "typing" ? "typing" : "");
+    setFace(mode);
+  }
+
+  function say(html) {
+    bubble.classList.remove("hidden");
+    bubble.innerHTML = html;
+  }
+
+  function hideBubble() { bubble.classList.add("hidden"); }
+
+  async function typeScreen(text) {
+    screenText.textContent = "";
+    for (let i = 0; i < text.length; i++) {
+      screenText.textContent += text[i];
+      await sleep(18);
+    }
+  }
+
+  // ---------- attack sequence ----------
+  let running = false;
+
+  async function runAttack() {
+    if (running) return;
+    running = true;
+    $("attackBtn").disabled = true;
+    $("verdict").style.display = "none";
+    $("scorebar").innerHTML = "";
+    hideBubble();
+    setFigure("idle");
+    screenText.textContent = "$ ";
+
+    try {
+      const s = state;
+      const res = analyse();
+
+      // Phase 1 — recon
+      setFigure("typing");
+      await typeScreen("$ airodump-ng wlan0");
+      await sleep(280);
+      if (!s.ssidVisible) {
+        say("Ooh — a hidden network. My probe frames will <b>reveal the SSID</b> anyway.");
+      } else {
+        say("Found <b>BeanNetFreeWiFi</b>. Let's see what's protecting it.");
+      }
+      await sleep(650);
+
+      // Phase 2 — encryption
+      if (s.encryption === "WEP") {
+        await typeScreen("$ aireplay-ng --arpreplay");
+        await sleep(400);
+        say("WEP? That took <b>~40 seconds</b>. I'm in — traffic decrypted.");
+      } else if (s.encryption === "WPA") {
+        await typeScreen("$ aireplay-ng --deauth");
+        await sleep(360);
+        say("Old WPA handshake captured. Dictionary attack…");
+        await sleep(420);
+        if (passphraseScore(s.passphrase) < 2) say("<b>Weak passphrase matched!</b> Key recovered.");
+        else say("Dictionary exhausted — no match. The passphrase held.");
+      } else if (s.encryption === "WPA2") {
+        await typeScreen("$ aireplay-ng --deauth");
+        await sleep(360);
+        say("WPA2-AES handshake captured. Running dictionary…");
+        await sleep(420);
+        if (passphraseScore(s.passphrase) < 2) say("<b>Passphrase matched!</b> Network key recovered.");
+        else say("Dictionary exhausted — no match. WPA2-AES held.");
+      } else {
+        await typeScreen("$ aireplay-ng --deauth");
+        await sleep(360);
+        say("WPA3 SAE? Dragonfly attack infeasible here. <b>Nothing to crack.</b>");
+      }
+      await sleep(700);
+
+      // Phase 3 — WPS
+      await typeScreen("$ reaver -b 00:1B:44");
+      await sleep(320);
+      if (s.wps) say("WPS PIN brute-forced. PIN <b>12345670</b> — network key recovered directly.");
+      else say("WPS is disabled. No PIN surface. Moving on…");
+      await sleep(650);
+
+      // Phase 4 — admin panel
+      await typeScreen("$ hydra 192.168.1.1");
+      await sleep(320);
+      if (s.adminPassword.trim().toLowerCase() === "admin" || s.adminPassword.length < 8) {
+        say("<b>Admin / admin</b> accepted. I own the router panel now.");
+      } else {
+        say("Admin login not found. Router panel held.");
+      }
+      await sleep(600);
+
+      // Phase 5 — firmware
+      if (!s.firmwareUpdated) say("Outdated firmware — a known CVE gives me remote access.");
+      else say("Firmware is current. No matching CVE here.");
+      await sleep(500);
+
+      // Verdict
+      if (res.breached) {
+        setFigure("win");
+        say("😈 <b>Network breached.</b> Your settings left doors open.");
+      } else {
+        setFigure("lose");
+        say("😤 Blocked. Every route I tried was shut. Well played.");
+      }
+
+      const v = $("verdict");
+      v.style.display = "block";
+      v.className = "verdict " + (res.breached ? "fail" : "pass");
+
+      if (res.breached) {
+        let items = "";
+        res.findings.forEach(function (f) {
+          if (f.severity !== "info") items += "<li>" + f.text + "</li>";
+        });
+        v.innerHTML = "<h3>⚠️ Network Breached</h3>The attacker gained access. Findings:<ul>" + items + "</ul>";
+      } else {
+        let items = "";
+        res.findings.forEach(function (f) {
+          if (f.severity === "info") items += "<li>" + f.text + "</li>";
+        });
+        v.innerHTML = "<h3>✅ Attack Held</h3>No critical or high-severity weakness found. The attacker was blocked." +
+          (items ? "<ul>" + items + "</ul>" : "");
+      }
+
+      $("scorebar").innerHTML =
+        '<span class="chip ' + (res.critical > 0 ? "bad" : "good") + '">Critical: ' + res.critical + '</span>' +
+        '<span class="chip ' + (res.high > 0 ? "bad" : "good") + '">High: ' + res.high + '</span>' +
+        '<span class="chip">Info: ' + res.info + '</span>';
+
+    } catch (err) {
+      console.error(err);
+      say("Something went wrong in the simulation — check the console.");
+    } finally {
+      running = false;
+      $("attackBtn").disabled = false;
+    }
+  }
+
+  $("attackBtn").addEventListener("click", runAttack);
+
+  // ---------- reset ----------
+  $("resetBtn").addEventListener("click", function () {
+    state.ssidVisible = true;
+    state.encryption = "WEP";
+    state.passphrase = "admin123";
+    state.wps = true;
+    state.macFiltering = false;
+    state.guestNetwork = false;
+    state.firmwareUpdated = false;
+    state.adminPassword = "admin";
+
+    $("enc").value = "WEP";
+    $("pw").value = "admin123";
+    $("adminpw").value = "admin";
+
+    toggles.forEach(function (pair) { syncToggle($(pair[0]), state[pair[1]]); });
+    hideBubble();
+    setFigure("idle");
+    screenText.textContent = "$ ";
+    $("verdict").style.display = "none";
+    $("scorebar").innerHTML = "";
+  });
+
+})();
+</script>
+</body>
+</html>

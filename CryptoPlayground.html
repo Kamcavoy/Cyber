@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crypto Playground – Interactive Encryption</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js">
+    </script>
+    <style>
+        /* ─── ROOT FONT SIZE (scales everything) ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEME VARIABLES ─── */
+        :root {
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --bg-input: #0d1117;
+            --bg-section: #1c2333;
+            --bg-hover: #252d3f;
+            --text-primary: #e6edf3;
+            --text-secondary: #b1bac4;
+            --text-muted: #8b949e;
+            --border-light: #30363d;
+            --border-focus: #58a6ff;
+            --shadow-card: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-orange: #d29922;
+            --accent-purple: #bc8cff;
+            --gradient-header: linear-gradient(135deg, #58a6ff, #bc8cff);
+            --radius-card: 1.2rem;
+            --radius-input: 0.6rem;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --bg-input: #f6f8fa;
+            --bg-section: #f0f4f8;
+            --bg-hover: #e1e8ed;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+            --accent-blue: #2b6a9e;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-orange: #c97a2a;
+            --accent-purple: #6a3e8a;
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.6;
+        }
+
+        .card {
+            max-width: 58rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2rem;
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .brand .icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .brand h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.2rem;
+        }
+
+        .accessibility-controls button:hover {
+            background: var(--bg-hover);
+        }
+
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.15rem;
+        }
+
+        .accessibility-controls .text-size-group button {
+            padding: 0.25rem 0.6rem;
+            font-size: 0.85rem;
+            min-width: 2rem;
+            justify-content: center;
+        }
+
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        .sub {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── MAIN GRID ─── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        @media (max-width: 700px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        /* ─── PANELS ─── */
+        .panel {
+            background: var(--bg-section);
+            border-radius: 0.9rem;
+            padding: 1.2rem 1.4rem;
+            border: 1px solid var(--border-light);
+            transition: background 0.3s;
+        }
+
+        .panel h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel h3 .badge {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            background: var(--accent-blue);
+            color: #fff;
+            padding: 0.1rem 0.6rem;
+            border-radius: 2rem;
+        }
+
+        .panel label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+        }
+
+        .panel select,
+        .panel input[type="text"],
+        .panel input[type="number"],
+        .panel textarea {
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            border-radius: var(--radius-input);
+            border: 1px solid var(--border-light);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: var(--font-mono);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            margin-bottom: 0.6rem;
+        }
+
+        .panel select:focus,
+        .panel input:focus,
+        .panel textarea:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+        }
+
+        .panel textarea {
+            min-height: 5rem;
+            resize: vertical;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .panel textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .panel .input-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .panel .input-group label {
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .panel .input-group input {
+            flex: 1;
+            min-width: 4rem;
+            margin-bottom: 0;
+        }
+
+        .panel .btn {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .panel .btn:active {
+            transform: scale(0.96);
+        }
+
+        .panel .btn-primary {
+            background: var(--accent-blue);
+        }
+
+        .panel .btn-primary:hover {
+            background: #4790e0;
+        }
+
+        .panel .btn-success {
+            background: var(--accent-green);
+        }
+
+        .panel .btn-success:hover {
+            background: #2ea043;
+        }
+
+        .panel .btn-warning {
+            background: var(--accent-orange);
+            color: #1a1a1a;
+        }
+
+        .panel .btn-warning:hover {
+            background: #b8860b;
+        }
+
+        .panel .btn-danger {
+            background: var(--accent-red);
+        }
+
+        .panel .btn-danger:hover {
+            background: #d73a3a;
+        }
+
+        .panel .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        .panel .btn-outline:hover {
+            background: var(--bg-hover);
+        }
+
+        .panel .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.2rem;
+        }
+
+        /* ─── OUTPUT ─── */
+        .output-box {
+            background: var(--bg-input);
+            border-radius: var(--radius-input);
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-light);
+            min-height: 4rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            word-break: break-all;
+            color: var(--text-primary);
+            margin-top: 0.4rem;
+            transition: background 0.3s;
+        }
+
+        .output-box .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .output-box .value {
+            margin-top: 0.2rem;
+        }
+
+        .output-box .value.success {
+            color: var(--accent-green);
+        }
+
+        .output-box .value.error {
+            color: var(--accent-red);
+        }
+
+        /* ─── CHEAT SHEET ─── */
+        .cheat-sheet {
+            margin-top: 1.2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            background: var(--bg-section);
+            border-radius: 0.9rem;
+            border: 1px solid var(--border-light);
+        }
+
+        @media (max-width: 700px) {
+            .cheat-sheet {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+        }
+
+        .cheat-sheet h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .cheat-sheet pre {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--bg-input);
+            padding: 0.5rem 0.7rem;
+            border-radius: var(--radius-input);
+            border: 1px solid var(--border-light);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0.2rem 0 0.4rem 0;
+        }
+
+        .cheat-sheet .demo-btns {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1rem 0.8rem;
+                border-radius: 1.2rem;
+            }
+
+            .brand h1 {
+                font-size: 1.2rem;
+            }
+
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.6rem;
+            }
+
+            .panel {
+                padding: 0.8rem 1rem;
+            }
+
+            .cheat-sheet {
+                padding: 0.8rem 1rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.6rem 0.4rem;
+            }
+
+            .panel .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        /* ─── FOCUS VISIBLE ─── */
+        button:focus-visible,
+        select:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        /* ─── UTILITY ─── */
+        .mt-1 {
+            margin-top: 0.6rem;
+        }
+        .mb-1 {
+            margin-bottom: 0.6rem;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-center {
+            align-items: center;
+        }
+        .gap-1 {
+            gap: 0.5rem;
+        }
+        .text-muted {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Hidden helper */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app" role="main" aria-label="Crypto Playground – Interactive Encryption">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🔐</span>
+                <h1>Crypto Playground</h1>
+            </div>
+            <div class="accessibility-controls">
+<a href="index.html" class="home-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; padding:0.4rem 0.8rem; border-radius:2rem; background:var(--accent-blue); color:#fff; border:1px solid var(--accent-blue); font-size:0.9rem; font-weight:500; min-height:2.4rem; transition:background 0.2s;">🏠 Home</a>
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">☀️</span> <span id="darkLabel">Light</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>Encrypt and decrypt messages</strong> using two different algorithms.
+            See the difference between a simple Caesar cipher and military‑grade AES.
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="main-grid">
+
+            <!-- LEFT PANEL: Encrypt & Decrypt -->
+            <div class="panel">
+                <h3>⚙️ Operations <span class="badge">Live</span></h3>
+
+                <label for="algorithm">Algorithm</label>
+                <select id="algorithm">
+                    <option value="caesar">Caesar Cipher</option>
+                    <option value="aes">AES (Advanced)</option>
+                </select>
+
+                <!-- Encrypt -->
+                <label for="plaintext">Plaintext</label>
+                <textarea id="plaintext" placeholder="Enter message to encrypt…"></textarea>
+
+                <div id="caesar-controls">
+                    <div class="input-group">
+                        <label for="shift">Shift:</label>
+                        <input type="number" id="shift" value="3" min="1" max="25" />
+                    </div>
+                </div>
+
+                <div id="aes-controls" class="hidden">
+                    <label for="aes-key">Secret Key (16/24/32 chars)</label>
+                    <input type="text" id="aes-key" placeholder="e.g. mySuperSecretKey123" />
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnEncrypt">🔒 Encrypt</button>
+                    <button class="btn btn-success" id="btnDecrypt">🔓 Decrypt</button>
+                    <button class="btn btn-outline" id="btnClear">✕ Clear</button>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Output & Explanation -->
+            <div class="panel">
+                <h3>📋 Output <span class="badge">Result</span></h3>
+
+                <div class="output-box" id="output">
+                    <div class="label">Ready</div>
+                    <div class="value" id="outputValue">Enter a message and encrypt or decrypt.</div>
+                </div>
+
+                <div class="mt-1">
+                    <h3 style="font-size:0.85rem; margin-bottom:0.3rem;">📖 Algorithm Explanation</h3>
+                    <div id="explanation" style="font-size:0.85rem; color:var(--text-secondary);">
+                        <div id="caesar-explain">
+                            <p><strong>Caesar Cipher</strong> – shifts each letter by a fixed number.</p>
+                            <p class="text-muted">Example: <code>ABC</code> (+3) → <code>DEF</code></p>
+                            <p class="text-muted">⚠️ <strong>Very weak</strong> – easily broken by brute force.</p>
+                        </div>
+                        <div id="aes-explain" class="hidden">
+                            <p><strong>AES (Advanced Encryption Standard)</strong> – symmetric block cipher.</p>
+                            <p class="text-muted">Key sizes: 128 / 192 / 256 bits</p>
+                            <p class="text-muted">🔒 <strong>Strong</strong> – used by governments and militaries.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHEAT SHEET -->
+        <div class="cheat-sheet">
+            <div>
+                <h4>📜 Caesar Cipher</h4>
+                <pre>Encrypt: E(x) = (x + shift) mod 26
+        Decrypt: D(x) = (x - shift) mod 26</pre>
+                <div class="demo-btns">
+                    <button class="btn btn-warning" id="demoCaesar">▶ Demo Caesar</button>
+                </div>
+            </div>
+            <div>
+                <h4>🔐 AES Parameters</h4>
+                <pre>Mode: CBC
+        Padding: PKCS7
+        IV: Random (auto-generated)</pre>
+                <div class="demo-btns">
+                    <button class="btn btn-warning" id="demoAES">▶ Demo AES</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESET -->
+        <div style="margin-top:0.8rem; display:flex; justify-content:flex-end;">
+            <button class="btn btn-danger" id="resetAll">↺ Reset All</button>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DOM REFS ───
+            const algorithm = document.getElementById('algorithm');
+            const plaintext = document.getElementById('plaintext');
+            const shiftInput = document.getElementById('shift');
+            const aesKey = document.getElementById('aes-key');
+            const caesarControls = document.getElementById('caesar-controls');
+            const aesControls = document.getElementById('aes-controls');
+            const caesarExplain = document.getElementById('caesar-explain');
+            const aesExplain = document.getElementById('aes-explain');
+            const outputValue = document.getElementById('outputValue');
+            const outputBox = document.getElementById('output');
+            const btnEncrypt = document.getElementById('btnEncrypt');
+            const btnDecrypt = document.getElementById('btnDecrypt');
+            const btnClear = document.getElementById('btnClear');
+            const demoCaesar = document.getElementById('demoCaesar');
+            const demoAES = document.getElementById('demoAES');
+            const resetAll = document.getElementById('resetAll');
+
+            // ─── STATE ───
+            let lastResult = '';
+
+            // ─── HELPERS ───
+            function setOutput(text, type) {
+                const label = outputBox.querySelector('.label');
+                const value = outputValue;
+                if (type === 'success') {
+                    label.textContent = '✅ Success';
+                    value.className = 'value success';
+                } else if (type === 'error') {
+                    label.textContent = '❌ Error';
+                    value.className = 'value error';
+                } else {
+                    label.textContent = 'ℹ️ Info';
+                    value.className = 'value';
+                }
+                value.textContent = text;
+                lastResult = text;
+            }
+
+            function updateControls() {
+                const isCaesar = algorithm.value === 'caesar';
+                caesarControls.classList.toggle('hidden', !isCaesar);
+                aesControls.classList.toggle('hidden', isCaesar);
+                caesarExplain.classList.toggle('hidden', !isCaesar);
+                aesExplain.classList.toggle('hidden', isCaesar);
+            }
+
+            // ─── CAESAR ───
+            function caesarCipher(text, shift, encrypt) {
+                const dir = encrypt ? shift : -shift;
+                return text.split('').map(ch => {
+                    const code = ch.charCodeAt(0);
+                    if (code >= 65 && code <= 90) {
+                        return String.fromCharCode(((code - 65 + dir + 26) % 26) + 65);
+                    }
+                    if (code >= 97 && code <= 122) {
+                        return String.fromCharCode(((code - 97 + dir + 26) % 26) + 97);
+                    }
+                    return ch;
+                }).join('');
+            }
+
+            // ─── AES ───
+            function aesEncrypt(text, key) {
+                try {
+                    const keyUtf8 = CryptoJS.enc.Utf8.parse(key);
+                    const iv = CryptoJS.lib.WordArray.random(16);
+                    const encrypted = CryptoJS.AES.encrypt(text, keyUtf8, {
+                        iv: iv,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                    return iv.toString() + encrypted.toString();
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function aesDecrypt(ciphertext, key) {
+                try {
+                    const keyUtf8 = CryptoJS.enc.Utf8.parse(key);
+                    const iv = CryptoJS.enc.Hex.parse(ciphertext.substring(0, 32));
+                    const encrypted = ciphertext.substring(32);
+                    const decrypted = CryptoJS.AES.decrypt(encrypted, keyUtf8, {
+                        iv: iv,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                    const result = decrypted.toString(CryptoJS.enc.Utf8);
+                    return result || null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // ─── ENCRYPT ───
+            function handleEncrypt() {
+                const text = plaintext.value.trim();
+                if (!text) {
+                    setOutput('Please enter some text to encrypt.', 'error');
+                    return;
+                }
+
+                if (algorithm.value === 'caesar') {
+                    const shift = parseInt(shiftInput.value, 10) || 3;
+                    const result = caesarCipher(text, shift, true);
+                    setOutput(`Caesar (+${shift}): ${result}`, 'success');
+                } else {
+                    const key = aesKey.value.trim();
+                    if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
+                        setOutput('AES key must be exactly 16, 24, or 32 characters.', 'error');
+                        return;
+                    }
+                    const result = aesEncrypt(text, key);
+                    if (result) {
+                        setOutput(`AES Encrypted: ${result}`, 'success');
+                    } else {
+                        setOutput('AES encryption failed. Check your key.', 'error');
+                    }
+                }
+            }
+
+            // ─── DECRYPT ───
+            function handleDecrypt() {
+                const text = plaintext.value.trim();
+                if (!text) {
+                    setOutput('Please enter the ciphertext to decrypt.', 'error');
+                    return;
+                }
+
+                if (algorithm.value === 'caesar') {
+                    const shift = parseInt(shiftInput.value, 10) || 3;
+                    const result = caesarCipher(text, shift, false);
+                    setOutput(`Caesar (-${shift}): ${result}`, 'success');
+                } else {
+                    const key = aesKey.value.trim();
+                    if (!key || (key.length !== 16 && key.length !== 24 && key.length !== 32)) {
+                        setOutput('AES key must be exactly 16, 24, or 32 characters.', 'error');
+                        return;
+                    }
+                    const result = aesDecrypt(text, key);
+                    if (result) {
+                        setOutput(`AES Decrypted: ${result}`, 'success');
+                    } else {
+                        setOutput('AES decryption failed. Check your key and ciphertext.', 'error');
+                    }
+                }
+            }
+
+            // ─── DEMOS ───
+            function runDemoCaesar() {
+                plaintext.value = 'ATTACK AT DAWN';
+                shiftInput.value = 5;
+                algorithm.value = 'caesar';
+                updateControls();
+                handleEncrypt();
+            }
+
+            function runDemoAES() {
+                plaintext.value = 'Secret Message';
+                aesKey.value = 'mySuperSecretKey123';
+                algorithm.value = 'aes';
+                updateControls();
+                handleEncrypt();
+            }
+
+            // ─── RESET ───
+            function handleReset() {
+                plaintext.value = '';
+                shiftInput.value = 3;
+                aesKey.value = '';
+                algorithm.value = 'caesar';
+                updateControls();
+                setOutput('Ready. Enter a message and encrypt or decrypt.', 'info');
+            }
+
+            // ─── CLEAR ───
+            function handleClear() {
+                plaintext.value = '';
+                setOutput('Cleared. Enter a new message.', 'info');
+            }
+
+            // ─── EVENT LISTENERS ───
+            algorithm.addEventListener('change', updateControls);
+
+            btnEncrypt.addEventListener('click', handleEncrypt);
+            btnDecrypt.addEventListener('click', handleDecrypt);
+            btnClear.addEventListener('click', handleClear);
+
+            demoCaesar.addEventListener('click', runDemoCaesar);
+            demoAES.addEventListener('click', runDemoAES);
+            resetAll.addEventListener('click', handleReset);
+
+            // Enter key support: encrypt on Ctrl+Enter or Cmd+Enter
+            plaintext.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    handleEncrypt();
+                }
+            });
+
+            // ─── ACCESSIBILITY: DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+            let darkMode = true; // default to dark
+
+            // Check for saved preference
+            const savedTheme = localStorage.getItem('crypto-theme');
+            if (savedTheme === 'light') {
+                darkMode = false;
+                document.documentElement.setAttribute('data-theme', 'light');
+                darkIcon.textContent = '🌙';
+                darkLabel.textContent = 'Dark';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkIcon.textContent = '☀️';
+                darkLabel.textContent = 'Light';
+            }
+
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                localStorage.setItem('crypto-theme', darkMode ? 'dark' : 'light');
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            // ─── TEXT SIZE ───
+            const htmlEl = document.documentElement;
+
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+                localStorage.setItem('crypto-text-size', sizeClass);
+            }
+
+            const savedSize = localStorage.getItem('crypto-text-size');
+            if (savedSize) {
+                setTextSize(savedSize);
+            }
+
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── INIT ───
+            updateControls();
+            setOutput('Ready. Choose an algorithm, type a message, and encrypt or decrypt.', 'info');
+
+            console.log('🔐 Crypto Playground loaded!');
+        })();
+    </script>
+
+</body>
+</html>

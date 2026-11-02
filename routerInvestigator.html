@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeanNet Café — Spot the Weakness</title>
+<style>
+  :root {
+    --bg: #1e1e24;
+    --panel: #2a2a32;
+    --accent: #c9d18f;
+    --danger: #e06c6c;
+    --ok: #7fc78a;
+    --warn: #e0b96c;
+    --text: #e8e8ec;
+    --muted: #9a9aa8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    padding: 16px 24px; background: #15151a;
+    border-bottom: 1px solid #333; display: flex;
+    justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { font-size: 18px; margin: 0; letter-spacing: 0.5px; }
+
+  .intro { padding: 20px 24px 8px; max-width: 900px; }
+  .intro h2 { margin: 0 0 6px; font-size: 16px; }
+  .intro p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .stage-wrap {
+    padding: 16px 24px 24px; display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    gap: 20px; align-items: start; max-width: 1400px;
+  }
+  @media (max-width: 860px) { .stage-wrap { grid-template-columns: 1fr; } }
+
+  .gallery-tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .gallery-tab {
+    background: var(--panel); border: 1px solid #3a3a44; color: var(--muted);
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gallery-tab:hover { border-color: var(--accent); color: var(--text); }
+  .gallery-tab.active {
+    background: var(--accent); border-color: var(--accent); color: #1a1a1a; font-weight: 600;
+  }
+
+  .photo {
+    position: relative; border-radius: 12px; overflow: hidden;
+    border: 1px solid #3a3a44; background: #111; display: none;
+  }
+  .photo.active { display: block; }
+  .photo img { display: block; width: 100%; height: auto; }
+
+  .img-fallback {
+    padding: 24px; font-size: 13px; line-height: 1.5; color: var(--warn);
+    text-align: center;
+  }
+
+  .hotspot {
+    position: absolute; width: 6%; padding-bottom: 6%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%; background: rgba(201, 209, 143, 0.2);
+    border: 2px solid var(--accent); cursor: pointer;
+    transition: all 0.2s;
+    animation: pulse 2.2s infinite;
+  }
+  .hotspot:hover { background: rgba(201, 209, 143, 0.5); transform: translate(-50%, -50%) scale(1.15); }
+  .hotspot.found { background: rgba(127, 199, 138, 0.5); border-color: var(--ok); animation: none; }
+  .hotspot.found::after {
+    content: "✓"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 18px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 209, 143, 0.6); }
+    50% { box-shadow: 0 0 0 10px rgba(201, 209, 143, 0); }
+  }
+
+  .panel {
+    background: var(--panel); border: 1px solid #3a3a44; border-radius: 12px;
+    padding: 18px; position: sticky; top: 16px;
+  }
+  .panel h3 { margin: 0 0 6px; font-size: 15px; }
+  .panel .status { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .panel .status strong { color: var(--text); }
+
+  .finding {
+    border-top: 1px solid #3a3a44; padding: 12px 0;
+    animation: fadeIn 0.3s ease;
+  }
+  .finding:first-of-type { border-top: none; }
+  .finding h4 { margin: 0 0 4px; font-size: 13.5px; color: var(--accent); }
+  .finding p { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; color: var(--text); }
+  .finding .quote {
+    font-size: 12px; font-style: italic; color: #d8dcb0;
+    border-left: 2px solid var(--accent); padding-left: 8px; margin: 6px 0;
+  }
+  .finding .fix { font-size: 12px; color: var(--ok); margin-top: 6px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .empty { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .empty strong { color: var(--text); }
+
+  .progress { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a44; transition: background 0.2s; }
+  .dot.on { background: var(--ok); }
+
+  .reset-btn {
+    margin-top: 16px; width: 100%;
+    background: var(--panel); color: var(--text);
+    border: 1px solid #4a4a58; border-radius: 8px;
+    padding: 10px; font-size: 13px; cursor: pointer;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .complete {
+    margin-top: 14px; padding: 12px; border-radius: 10px;
+    background: rgba(127, 199, 138, 0.12); border: 1px solid var(--ok);
+    font-size: 13px; line-height: 1.5; display: none;
+  }
+  .complete.show { display: block; animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ BeanNet Café — Spot the Weakness</h1>
+</header>
+
+<div class="intro">
+  <h2>Examine the café router</h2>
+  <p>This is the BeanNet Café ZyXEL router as installed. Switch between the views and click the glowing hotspots to inspect each weak point.</p>
+</div>
+
+<div class="stage-wrap">
+
+  <div>
+    <div class="gallery-tabs">
+      <button class="gallery-tab active" data-target="view-front">Front View</button>
+      <button class="gallery-tab" data-target="view-bottom">Bottom View</button>
+      <button class="gallery-tab" data-target="view-back">Back View</button>
+    </div>
+
+    <!-- FRONT VIEW -->
+    <div class="photo active" id="view-front">
+      <img src="router-front.jpg" alt="ZyXEL Router Front"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="img-fallback" style="display:none;">
+        <strong>Image not found.</strong><br> Please ensure <code>router-front.jpg</code> is in the same folder as this HTML file.
+      </div>
+
+      <button class="hotspot" style="left:34%; top:69%;" data-id="wps" aria-label="WPS button"></button>
+      <button class="hotspot" style="left:53%; top:78%;" data-id="leds" aria-label="Status LEDs"></button>
+      <button class="hotspot" style="left:22%; top:14%;" data-id="antenna" aria-label="Antenna"></button>
+    </div>
+
+    <!-- BOTTOM VIEW -->
+    <div class="photo" id="view-bottom">
+      <img src="router-bottom.jpg" alt="ZyXEL Router Bottom (sticker)"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="img-fallback" style="display:none;">
+        <strong>Image not found.</strong><br> Please ensure <code>router-bottom.jpg</code> is in the same folder as this HTML file.
+      </div>
+
+      <button class="hotspot" style="left:50%; top:48%;" data-id="label" aria-label="Sticker with default credentials"></button>
+    </div>
+
+    <!-- BACK VIEW -->
+    <div class="photo" id="view-back">
+      <img src="router-back.jpg" alt="ZyXEL Router Back"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="img-fallback" style="display:none;">
+        <strong>Image not found.</strong><br> Please ensure <code>router-back.jpg</code> is in the same folder as this HTML file.
+      </div>
+
+      <button class="hotspot" style="left:75%; top:53%;" data-id="reset" aria-label="Reset button"></button>
+      <button class="hotspot" style="left:26%; top:53%;" data-id="lan" aria-label="LAN ports"></button>
+      <button class="hotspot" style="left:12%; top:85%;" data-id="case" aria-label="Router placement"></button>
+    </div>
+  </div>
+
+  <aside class="panel">
+    <h3>Findings</h3>
+    <div class="status">Found <strong id="foundCount">0</strong> of <strong>7</strong> weak points.</div>
+
+    <div id="findings">
+      <p class="empty">Click a glowing hotspot on the router to inspect it. Each finding quotes the course material and suggests a fix.</p>
+    </div>
+
+    <div class="progress" id="progress"></div>
+
+    <div class="complete" id="complete">
+      🎉 All 7 weak points found.
+    </div>
+
+    <button class="reset-btn" id="resetBtn">Reset findings</button>
+  </aside>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const FINDINGS = {
+    wps: {
+      title: "WPS button on the front",
+      body: "A physical WPS button invites PIN-based pairing — the easiest backdoor into the network.",
+      quote: "\"PINs are vulnerable to brute-force attacks. Often enabled by default, creating a significant backdoor.\"",
+      fix: "Fix: Disable WPS in the admin panel and, if possible, cover or ignore the physical button."
+    },
+    leds: {
+      title: "Status LEDs always on",
+      body: "Blinking activity LEDs leak information about traffic volume and the presence of devices to anyone in the room.",
+      quote: "\"Physical Access Control: Position all access points in physically secure locations to prevent tampering, theft, or unauthorised access to hardware.\"",
+      fix: "Fix: Move the router out of reach of customers, or disable LEDs in firmware settings where supported."
+    },
+    antenna: {
+      title: "Antenna broadcasting outward",
+      body: "A high-gain antenna pushes the signal well beyond the café, exposing the network to interception from the street.",
+      quote: "\"Wireless networks broadcast beyond physical boundaries, exposing data to potential interception by anyone within range.\"",
+      fix: "Fix: Reduce transmit power where possible and use WPA2/WPA3 so intercepted traffic remains unreadable."
+    },
+    label: {
+      title: "Default credentials on the sticker",
+      body: "The sticker on the underside prints the default password and WPS PIN — a free handout for attackers who can reach the device.",
+      quote: "\"Default admin credentials allow unauthorised access to router settings for malicious changes.\"",
+      fix: "Fix: Change the admin password and Wi-Fi passphrase from the defaults, and remove or obscure the sticker."
+    },
+    reset: {
+      title: "Pin-hole Reset button",
+      body: "An exposed reset button can be pressed with a paperclip to factory-reset the router, wiping all security settings.",
+      quote: "\"Position all access points in physically secure locations to prevent tampering, theft, or unauthorised access to hardware.\"",
+      fix: "Fix: Ensure the router is behind a locked door or high up where customers cannot physically reach it."
+    },
+    lan: {
+      title: "LAN ports exposed",
+      body: "Physical Ethernet ports allow a malicious actor to plug in a laptop and bypass Wi-Fi encryption entirely.",
+      quote: "\"Wireless networks broadcast beyond physical boundaries, exposing data to potential interception by anyone within range.\"",
+      fix: "Fix: Disable unused LAN ports in the router configuration, or keep the router physically inaccessible."
+    },
+    case: {
+      title: "Router placed on the counter",
+      body: "The router is in a public area, within arm's reach of customers and staff — a physical tampering risk.",
+      quote: "\"Position all access points in physically secure locations to prevent tampering, theft, or unauthorised access to hardware.\"",
+      fix: "Fix: Relocate the router behind the counter or into a locked cabinet, keeping antennas unobstructed."
+    }
+  };
+
+  const found = new Set();
+  const totalFindings = Object.keys(FINDINGS).length; // 7
+  const $ = (id) => document.getElementById(id);
+
+  const progressContainer = $("progress");
+  for (let i = 0; i < totalFindings; i++) {
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    progressContainer.appendChild(dot);
+  }
+
+  document.querySelectorAll(".gallery-tab").forEach(function(tab) {
+    tab.addEventListener("click", function() {
+      document.querySelectorAll(".gallery-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const targetId = tab.dataset.target;
+      document.querySelectorAll(".photo").forEach(ph => ph.classList.remove("active"));
+      document.getElementById(targetId).classList.add("active");
+    });
+  });
+
+  function render() {
+    $("foundCount").textContent = String(found.size);
+
+    const dots = $("progress").querySelectorAll(".dot");
+    dots.forEach(function (dot, i) { dot.classList.toggle("on", i < found.size); });
+
+    const container = $("findings");
+    if (found.size === 0) {
+      container.innerHTML = '<p class="empty">Click a glowing hotspot on the router to inspect it. Each finding quotes the course material and suggests a fix.</p>';
+    } else {
+      let html = "";
+      found.forEach(function (id) {
+        const f = FINDINGS[id];
+        html +=
+          '<div class="finding">' +
+            '<h4>' + f.title + '</h4>' +
+            '<p>' + f.body + '</p>' +
+            '<div class="quote">' + f.quote + '</div>' +
+            '<div class="fix">' + f.fix + '</div>' +
+          '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    $("complete").classList.toggle("show", found.size === totalFindings);
+  }
+
+  document.querySelectorAll(".hotspot").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const id = btn.dataset.id;
+      if (!id || !FINDINGS[id]) return;
+      if (found.has(id)) return;
+      found.add(id);
+      btn.classList.add("found");
+      render();
+    });
+  });
+
+  $("resetBtn").addEventListener("click", function () {
+    found.clear();
+    document.querySelectorAll(".hotspot").forEach(function (b) {
+      b.classList.remove("found");
+    });
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

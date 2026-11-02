@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ransomware Simulator – Cyber Security</title>
+    <style>
+        /* ─── ROOT FONT SIZE ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEMES ─── */
+        :root {
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --bg-input: #0d1117;
+            --bg-hover: #252d3f;
+            --text-primary: #e6edf3;
+            --text-secondary: #c8d4e0;
+            --text-muted: #8b949e;
+            --border-light: #30363d;
+            --border-focus: #58a6ff;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 0, 0, 0.5);
+            --bg-score: #1f2d3d;
+            --bg-feedback-correct: #1a3a2a;
+            --bg-feedback-wrong: #3a2222;
+            --bg-feedback-info: #1a2838;
+            --accent-green: #4cc090;
+            --accent-red: #e07060;
+            --accent-blue: #6a9ec8;
+            --accent-orange: #e8b040;
+            --gradient-header: linear-gradient(145deg, #4a7a9e, #6a9ec8);
+            --radius-card: 2rem;
+            --bg-meter-track: #3a4a5a;
+            --shadow-account: 0 0.15rem 0.5rem rgba(0,0,0,0.3);
+            --account-bg: #1e2a36;
+            --stat-good: var(--accent-green);
+            --stat-bad: var(--accent-red);
+            --stat-ok: var(--accent-orange);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --bg-input: #fafcfe;
+            --bg-hover: #e1e8ed;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 20, 40, 0.12);
+            --bg-score: #f2f8ff;
+            --bg-feedback-correct: #e2f3e8;
+            --bg-feedback-wrong: #fde8e4;
+            --bg-feedback-info: #ecf5fc;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-blue: #2b6a9e;
+            --accent-orange: #c97a2a;
+            --gradient-header: linear-gradient(145deg, #0b2b4a, #1a4a6e);
+            --bg-meter-track: #e9eef3;
+            --shadow-account: 0 0.15rem 0.5rem rgba(0,0,0,0.08);
+            --account-bg: #f8fafc;
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        .card {
+            max-width: 55rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2.1rem;
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand .icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .brand h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.4rem;
+        }
+        .accessibility-controls button:hover {
+            background: var(--bg-hover);
+        }
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .accessibility-controls .text-size-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.9rem;
+            min-width: 2.2rem;
+            justify-content: center;
+        }
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+        .home-btn {
+            background: var(--accent-blue);
+            color: #fff !important;
+            border-color: var(--accent-blue) !important;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 2.4rem;
+            transition: background 0.2s;
+        }
+        .home-btn:hover {
+            background: #1a4a7a !important;
+            border-color: #1a4a7a !important;
+        }
+
+        .sub {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── STATUS BARS ─── */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem 1.5rem;
+            margin: 1rem 0 1.2rem 0;
+        }
+        .status-item {
+            background: var(--bg-score);
+            padding: 0.6rem 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-light);
+        }
+        .status-item .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+        .status-item .bar-track {
+            height: 0.5rem;
+            background: var(--bg-meter-track);
+            border-radius: 2rem;
+            overflow: hidden;
+            margin-top: 0.2rem;
+        }
+        .status-item .bar-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 2rem;
+            transition: width 0.6s ease, background 0.6s ease;
+        }
+        .status-item .value-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.1rem;
+        }
+
+        /* ─── SCENARIO ─── */
+        .scenario-box {
+            background: var(--bg-input);
+            border-radius: 1.2rem;
+            padding: 1.2rem 1.5rem;
+            border: 2px solid var(--border-light);
+            margin: 1rem 0 1rem 0;
+            min-height: 7rem;
+        }
+        .scenario-box .step {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .scenario-box .title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        .scenario-box .desc {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* ─── OPTIONS ─── */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin: 0.8rem 0 0.5rem 0;
+        }
+        .options-grid button {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 2px solid var(--border-light);
+            border-radius: 1rem;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .options-grid button:hover:not(:disabled) {
+            border-color: var(--accent-blue);
+            background: var(--bg-hover);
+        }
+        .options-grid button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .options-grid button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .options-grid button .opt-icon {
+            font-size: 1.2rem;
+        }
+
+        /* ─── FEEDBACK ─── */
+        .feedback {
+            margin-top: 1rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            display: none;
+            border-left: 4px solid transparent;
+            background: var(--bg-feedback-info);
+            color: var(--text-secondary);
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback.success {
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        .feedback.danger {
+            border-left-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        .feedback.info {
+            border-left-color: var(--accent-blue);
+            color: var(--text-secondary);
+        }
+
+        /* ─── BOTTOM ─── */
+        .controls-bottom {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
+        }
+        .controls-bottom button {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            border: 2px solid var(--border-light);
+            border-radius: 3rem;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+        }
+        .controls-bottom button:hover:not(:disabled) {
+            background: var(--bg-hover);
+        }
+        .controls-bottom button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .controls-bottom .btn-next {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .controls-bottom .btn-next:hover:not(:disabled) {
+            background: #1a4a7a;
+            border-color: #1a4a7a;
+        }
+        .controls-bottom .btn-reset {
+            background: transparent;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1.1rem 0.9rem;
+                border-radius: 1.5rem;
+            }
+            .brand h1 {
+                font-size: 1.3rem;
+            }
+            .sub {
+                font-size: 0.85rem;
+            }
+            .status-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .scenario-box {
+                padding: 1rem;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+            .controls-bottom {
+                flex-direction: column;
+            }
+            .controls-bottom button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.8rem 0.6rem;
+            }
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            .options-grid button {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app" role="main" aria-label="Ransomware Simulator">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🦠</span>
+                <h1>Ransomware Simulator</h1>
+            </div>
+            <div class="accessibility-controls">
+                <a href="index.html" class="home-btn">🏠 Home</a>
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">☀️</span> <span id="darkLabel">Light</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>You are the Incident Response Lead.</strong> A ransomware attack has hit your company.
+            Every decision you make affects your <strong>Data, Money, Reputation, and Time</strong>.
+            Choose wisely – there are no perfect answers.
+        </div>
+
+        <!-- STATUS BARS -->
+        <div class="status-grid" id="statusGrid">
+            <div class="status-item">
+                <div class="label"><span>💾 Data</span> <span id="dataLabel">100%</span></div>
+                <div class="bar-track"><div class="bar-fill" id="dataBar" style="width:100%; background:var(--accent-green);"></div></div>
+                <div class="value-text" id="dataText">Data intact</div>
+            </div>
+            <div class="status-item">
+                <div class="label"><span>💰 Money</span> <span id="moneyLabel">$0</span></div>
+                <div class="bar-track"><div class="bar-fill" id="moneyBar" style="width:0%; background:var(--accent-green);"></div></div>
+                <div class="value-text" id="moneyText">No cost yet</div>
+            </div>
+            <div class="status-item">
+                <div class="label"><span>📰 Reputation</span> <span id="repLabel">100%</span></div>
+                <div class="bar-track"><div class="bar-fill" id="repBar" style="width:100%; background:var(--accent-green);"></div></div>
+                <div class="value-text" id="repText">Trust intact</div>
+            </div>
+            <div class="status-item">
+                <div class="label"><span>⏱️ Time</span> <span id="timeLabel">0 hrs</span></div>
+                <div class="bar-track"><div class="bar-fill" id="timeBar" style="width:0%; background:var(--accent-green);"></div></div>
+                <div class="value-text" id="timeText">Fast response</div>
+            </div>
+        </div>
+
+        <!-- SCENARIO -->
+        <div class="scenario-box" id="scenarioBox">
+            <div class="step" id="stepIndicator">Step 1 / 5</div>
+            <div class="title" id="scenarioTitle">The Attack Begins</div>
+            <div class="desc" id="scenarioDesc">Loading...</div>
+            <div class="options-grid" id="optionsGrid"></div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="feedback" id="feedback">
+            <span id="feedbackText"></span>
+        </div>
+
+        <!-- BOTTOM -->
+        <div class="controls-bottom">
+            <button class="btn-reset" id="btnReset">🔄 Restart</button>
+            <button class="btn-next" id="btnNext" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── SCENARIOS ───
+            const scenarios = [{
+                id: 1,
+                title: 'The Attack Begins',
+                desc: `Your security team detects that ransomware has encrypted 30% of your company's file servers. The attackers have left a ransom note demanding $500,000 in Bitcoin for the decryption key. You have a backup system, but it's only 80% up‑to‑date – some recent work may be lost.
+
+        What's your first move?`,
+                options: [
+                    { icon: '🔄', label: 'Restore from backups immediately', impact: { data: -10, money: 0, rep: 0,
+                            time: 10 } },
+                    { icon: '📞', label: 'Contact the attackers to negotiate', impact: { data: 0, money: -20, rep: -10,
+                            time: 15 } },
+                    { icon: '👮', label: 'Call law enforcement / cyber insurance', impact: { data: 0, money: -5, rep: -5,
+                            time: 20 } },
+                ],
+                feedback: {
+                    restore: '✅ Smart move – you minimise data loss by restoring from backups. However, you lose some recent work (Data -10%). Time lost to restore: +10 hrs.',
+                    negotiate: '⚠️ Negotiating with attackers is risky. They may demand more, and you lose time (15 hrs) while the attack spreads. Reputation takes a hit (-10%).',
+                    law: '🛡️ Law enforcement can help, but it takes time (20 hrs). Cyber insurance may cover some costs (-5% money), but your reputation suffers as the breach becomes public (-5%).'
+                }
+            }, {
+                id: 2,
+                title: 'Decryption Attempt',
+                desc: `You've partially restored from backups, but 40% of your critical databases are still encrypted. The attackers have sent a deadline: pay within 12 hours or they'll double the ransom to $1,000,000 and leak sensitive customer data.
+
+        Do you try to decrypt the remaining files yourself or pay for the decryption key?`,
+                options: [
+                    { icon: '🔑', label: 'Use a free decryption tool (may not work)', impact: { data: -20, money: 0,
+                            rep: -5, time: 10 } },
+                    { icon: '💵', label: 'Pay the ransom for the decryption key', impact: { data: -5, money: -40, rep: -15,
+                            time: 5 } },
+                    { icon: '💾', label: 'Accept data loss – restore what you can and rebuild', impact: { data: -30,
+                            money: 0, rep: -10, time: 25 } },
+                ],
+                feedback: {
+                    tool: '⚠️ The free tool doesn\'t work on this strain. You waste 10 hours and lose more data (-20%). Some files are corrupted permanently.',
+                    pay: '💰 You pay the ransom. You get the key and recover most data (Data -5%), but it costs $400,000 (-40% money) and damages your reputation (-15%). The attackers now see you as a target.',
+                    rebuild: '⏳ You accept the loss and rebuild from partial backups. It takes 25 hours, but you save money. However, you lose 30% of critical data and your reputation suffers (-10%).'
+                }
+            }, {
+                id: 3,
+                title: 'The Ransom Note',
+                desc: `The attackers have increased the pressure. They're now threatening to publish your stolen customer data (including PII) on the dark web unless you pay the full $1,000,000 within 6 hours. Your legal team warns that a data breach could cost millions in fines.
+
+        How do you respond?`,
+                options: [
+                    { icon: '📢', label: 'Go public and notify customers immediately', impact: { data: 0, money: -15,
+                            rep: -25, time: 10 } },
+                    { icon: '🤝', label: 'Continue negotiating with the attackers', impact: { data: 0, money: -30, rep: -20,
+                            time: 15 } },
+                    { icon: '🛡️', label: 'Focus on containment and ignore the threats', impact: { data: -10, money: -5,
+                            rep: -30, time: 8 } },
+                ],
+                feedback: {
+                    public: '📢 Transparency is good, but it hits your reputation hard (-25%). Legal costs and crisis PR cost money (-15%). However, you build long‑term trust with customers.',
+                    negotiate: '💬 Negotiation buys you time, but the attackers keep increasing demands. You lose 15 hours and money (-30%), and the threat remains.',
+                    contain: '🛡️ You stop the spread, but customers find out on their own – reputation plummets (-30%). You save money and time, but trust is broken.'
+                }
+            }, {
+                id: 4,
+                title: 'The Payment Decision',
+                desc: `You're down to the wire. 2 hours remain before the deadline. Your backups are corrupted and you can't recover without the decryption key. The company's board is pressuring you to pay.
+
+        What do you advise the CEO?`,
+                options: [
+                    { icon: '💸', label: 'Pay the ransom – it\'s the only option left', impact: { data: -5, money: -50,
+                            rep: -10, time: 2 } },
+                    { icon: '🚫', label: 'Refuse to pay – accept the data loss', impact: { data: -40, money: -5, rep: -20,
+                            time: 5 } },
+                    { icon: '🔍', label: 'Ask for more time to find an alternative', impact: { data: 0, money: -10, rep: -5,
+                            time: 10 } },
+                ],
+                feedback: {
+                    pay: '💀 You pay $500,000 more (-50% money). You get the key and recover data (Data -5%), but the attackers now know you\'re a soft target. Reputation suffers (-10%).',
+                    refuse: '💪 You refuse to pay. You lose 40% of your data permanently, but you save money. Reputation takes a hit (-20%) as customers question your security.',
+                    time: '⏳ You buy more time by asking for an extension. It costs you reputation (-5%) and money (-10%), but you might find a better solution.'
+                }
+            }, {
+                id: 5,
+                title: 'The Aftermath',
+                desc: `The crisis is over. You've either paid, restored, or accepted the losses. Now you must decide how to prevent this from happening again.
+
+        What's your priority for the future?`,
+                options: [
+                    { icon: '🎓', label: 'Train employees on security awareness', impact: { data: 0, money: -10, rep: 10,
+                            time: 5 } },
+                    { icon: '🛡️', label: 'Invest in better backup and recovery systems', impact: { data: 10, money: -20,
+                            rep: 15, time: 10 } },
+                    { icon: '🔐', label: 'Implement zero‑trust architecture', impact: { data: 5, money: -30, rep: 20,
+                            time: 15 } },
+                ],
+                feedback: {
+                    train: '🎓 Training is cost‑effective (-10% money) and improves your security culture. Reputation improves (+10%). Time investment: 5 hrs.',
+                    backup: '🛡️ Better backups protect your data (+10%) and reputation (+15%). It costs more (-20% money) but pays off in the long run.',
+                    zero: '🔐 Zero‑trust is the gold standard. It greatly improves reputation (+20%) and data protection (+5%). However, it\'s expensive (-30% money) and time‑consuming (15 hrs).'
+                }
+            }];
+
+            // ─── STATE ───
+            let currentStep = 0;
+            const totalSteps = scenarios.length;
+            let status = {
+                data: 100,
+                money: 0,
+                reputation: 100,
+                time: 0
+            };
+            let answered = false;
+
+            // ─── DOM REFS ───
+            const stepIndicator = document.getElementById('stepIndicator');
+            const scenarioTitle = document.getElementById('scenarioTitle');
+            const scenarioDesc = document.getElementById('scenarioDesc');
+            const optionsGrid = document.getElementById('optionsGrid');
+            const feedback = document.getElementById('feedback');
+            const feedbackText = document.getElementById('feedbackText');
+            const btnNext = document.getElementById('btnNext');
+            const btnReset = document.getElementById('btnReset');
+
+            // Status elements
+            const dataLabel = document.getElementById('dataLabel');
+            const dataBar = document.getElementById('dataBar');
+            const dataText = document.getElementById('dataText');
+            const moneyLabel = document.getElementById('moneyLabel');
+            const moneyBar = document.getElementById('moneyBar');
+            const moneyText = document.getElementById('moneyText');
+            const repLabel = document.getElementById('repLabel');
+            const repBar = document.getElementById('repBar');
+            const repText = document.getElementById('repText');
+            const timeLabel = document.getElementById('timeLabel');
+            const timeBar = document.getElementById('timeBar');
+            const timeText = document.getElementById('timeText');
+
+            // ─── RENDER ───
+            function renderScenario(index) {
+                const scenario = scenarios[index];
+                if (!scenario) {
+                    scenarioDesc.textContent = '⚠️ Scenario not found.';
+                    return;
+                }
+
+                // Reset answered state
+                answered = false;
+
+                stepIndicator.textContent = `Step ${index+1} / ${totalSteps}`;
+                scenarioTitle.textContent = scenario.title;
+                scenarioDesc.textContent = scenario.desc;
+
+                // Clear and rebuild options
+                optionsGrid.innerHTML = '';
+                scenario.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = `<span class="opt-icon">${opt.icon}</span> ${opt.label}`;
+                    btn.dataset.index = i;
+                    btn.addEventListener('click', function() {
+                        handleChoice(index, i);
+                    });
+                    btn.disabled = false;
+                    optionsGrid.appendChild(btn);
+                });
+
+                // Reset feedback
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'success', 'danger', 'info');
+                feedbackText.textContent = '';
+
+                // Disable Next until answered
+                btnNext.disabled = true;
+                btnNext.textContent = 'Next →';
+
+                updateStatusDisplay();
+            }
+
+            function updateStatusDisplay() {
+                // Clamp values
+                status.data = Math.max(0, Math.min(100, status.data));
+                status.reputation = Math.max(0, Math.min(100, status.reputation));
+                status.money = Math.max(0, Math.min(100, status.money));
+                status.time = Math.max(0, Math.min(100, status.time));
+
+                dataLabel.textContent = Math.round(status.data) + '%';
+                dataBar.style.width = status.data + '%';
+                dataBar.style.background = status.data > 60 ? 'var(--accent-green)' :
+                    status.data > 30 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                dataText.textContent = status.data > 70 ? 'Data intact' :
+                    status.data > 40 ? 'Some data lost' : 'Critical data lost';
+
+                moneyLabel.textContent = '$' + Math.round(status.money * 10000).toLocaleString();
+                moneyBar.style.width = Math.min(status.money, 100) + '%';
+                moneyBar.style.background = status.money < 30 ? 'var(--accent-green)' :
+                    status.money < 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                moneyText.textContent = status.money < 20 ? 'Low cost' :
+                    status.money < 50 ? 'Moderate cost' : 'High cost';
+
+                repLabel.textContent = Math.round(status.reputation) + '%';
+                repBar.style.width = status.reputation + '%';
+                repBar.style.background = status.reputation > 60 ? 'var(--accent-green)' :
+                    status.reputation > 30 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                repText.textContent = status.reputation > 70 ? 'Trust intact' :
+                    status.reputation > 40 ? 'Reputation damaged' : 'Reputation crisis';
+
+                const timeHrs = Math.round(status.time * 0.5);
+                timeLabel.textContent = timeHrs + ' hrs';
+                timeBar.style.width = Math.min(status.time, 100) + '%';
+                timeBar.style.background = status.time < 30 ? 'var(--accent-green)' :
+                    status.time < 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                timeText.textContent = status.time < 25 ? 'Fast response' :
+                    status.time < 50 ? 'Moderate delay' : 'Slow response';
+            }
+
+            // ─── HANDLE CHOICE ───
+            function handleChoice(stepIndex, optionIndex) {
+                if (answered) return;
+                const scenario = scenarios[stepIndex];
+                const choice = scenario.options[optionIndex];
+                const impact = choice.impact;
+
+                // Apply impact
+                status.data += impact.data || 0;
+                status.money += impact.money || 0;
+                status.reputation += impact.rep || 0;
+                status.time += impact.time || 0;
+
+                // Clamp
+                status.data = Math.max(0, Math.min(100, status.data));
+                status.reputation = Math.max(0, Math.min(100, status.reputation));
+                status.money = Math.max(0, Math.min(100, status.money));
+                status.time = Math.max(0, Math.min(100, status.time));
+
+                answered = true;
+                updateStatusDisplay();
+
+                // Show feedback
+                const key = Object.keys(scenario.feedback)[optionIndex];
+                const fb = scenario.feedback[key] || 'Outcome applied.';
+                feedback.className = 'feedback show';
+                if (impact.data < 0 || impact.money > 20 || impact.rep < -10) {
+                    feedback.classList.add('danger');
+                } else if (impact.data > 0 || impact.rep > 5) {
+                    feedback.classList.add('success');
+                } else {
+                    feedback.classList.add('info');
+                }
+                feedbackText.innerHTML = fb;
+
+                // Disable all option buttons
+                document.querySelectorAll('.options-grid button').forEach(b => b.disabled = true);
+
+                // Enable Next or show Finish
+                if (stepIndex < totalSteps - 1) {
+                    btnNext.disabled = false;
+                    btnNext.textContent = 'Next →';
+                } else {
+                    // Last step – show Finish button
+                    btnNext.disabled = false;
+                    btnNext.textContent = '🏁 Finish';
+                }
+            }
+
+            // ─── NEXT / FINISH ───
+            function handleNext() {
+                if (btnNext.textContent === '🏁 Finish') {
+                    // Finish button – reset the game
+                    resetGame();
+                    return;
+                }
+
+                // Normal Next step
+                if (currentStep < totalSteps - 1) {
+                    currentStep++;
+                    renderScenario(currentStep);
+                    btnNext.textContent = 'Next →';
+                    btnNext.disabled = true;
+                }
+            }
+
+            // ─── RESET ───
+            function resetGame() {
+                currentStep = 0;
+                status = { data: 100, money: 0, reputation: 100, time: 0 };
+                answered = false;
+                renderScenario(0);
+                btnNext.textContent = 'Next →';
+                btnNext.disabled = true;
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'success', 'danger', 'info');
+                feedbackText.textContent = '';
+                updateStatusDisplay();
+            }
+
+            // ─── EVENTS ───
+            btnNext.addEventListener('click', handleNext);
+            btnReset.addEventListener('click', resetGame);
+
+            // ─── ACCESSIBILITY: DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+
+            let darkMode = true;
+            darkIcon.textContent = '☀️';
+            darkLabel.textContent = 'Light';
+
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                localStorage.setItem('cyberlab-theme', darkMode ? 'dark' : 'light');
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            const savedTheme = localStorage.getItem('cyberlab-theme');
+            if (savedTheme === 'light') {
+                darkMode = false;
+                document.documentElement.setAttribute('data-theme', 'light');
+                darkIcon.textContent = '🌙';
+                darkLabel.textContent = 'Dark';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkIcon.textContent = '☀️';
+                darkLabel.textContent = 'Light';
+                localStorage.setItem('cyberlab-theme', 'dark');
+            }
+
+            // ─── TEXT SIZE ───
+            const htmlEl = document.documentElement;
+
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+                localStorage.setItem('cyberlab-text-size', sizeClass);
+            }
+            const savedSize = localStorage.getItem('cyberlab-text-size');
+            if (savedSize) setTextSize(savedSize);
+
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── INIT ───
+            resetGame();
+            console.log('🦠 Ransomware Simulator loaded – Finish button works!');
+        })();
+    </script>
+
+</body>
+</html>

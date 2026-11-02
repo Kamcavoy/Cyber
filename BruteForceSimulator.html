@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brute Force Simulator – Cyber Security</title>
+    <style>
+        /* ─── ROOT FONT SIZE ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEMES ─── */
+        :root {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 20, 40, 0.12);
+            --bg-input: #fafcfe;
+            --bg-score: #f2f8ff;
+            --bg-feedback-info: #ecf5fc;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-blue: #2b6a9e;
+            --accent-orange: #c97a2a;
+            --gradient-header: linear-gradient(145deg, #0b2b4a, #1a4a6e);
+            --radius-card: 2rem;
+            --bg-meter-track: #e9eef3;
+            --bg-attack-bar: #2b6a9e;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121a24;
+            --bg-card: #1e2a36;
+            --text-primary: #e8edf2;
+            --text-secondary: #c8d4e0;
+            --text-muted: #8fa4b8;
+            --border-light: #3a4a5a;
+            --border-focus: #6a9ec8;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 0, 0, 0.5);
+            --bg-input: #24303e;
+            --bg-score: #1f2d3d;
+            --bg-feedback-info: #1a2838;
+            --accent-green: #4cc090;
+            --accent-red: #e07060;
+            --accent-blue: #6a9ec8;
+            --accent-orange: #e8b040;
+            --gradient-header: linear-gradient(145deg, #4a7a9e, #6a9ec8);
+            --bg-meter-track: #3a4a5a;
+            --bg-attack-bar: #6a9ec8;
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        .card {
+            max-width: 55rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2.1rem;
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand .icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .brand h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.4rem;
+        }
+        .accessibility-controls button:hover {
+            background: var(--border-light);
+        }
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .accessibility-controls .text-size-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.9rem;
+            min-width: 2.2rem;
+            justify-content: center;
+        }
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        .sub {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── CONTROLS ─── */
+        .control-section {
+            background: var(--bg-input);
+            border-radius: 1.2rem;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid var(--border-light);
+            margin-bottom: 1.2rem;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 7rem;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+            margin-bottom: 0.2rem;
+        }
+        .control-group .value-display {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-blue);
+            background: var(--bg-meter-track);
+            height: 0.3rem;
+            border-radius: 1rem;
+            cursor: pointer;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-top: 0.2rem;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        /* ─── STATS GRID ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+            gap: 0.8rem;
+            margin: 1rem 0 1.2rem 0;
+        }
+        .stat-item {
+            background: var(--bg-score);
+            padding: 0.6rem 0.8rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-light);
+            text-align: center;
+        }
+        .stat-item .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+            color: var(--text-muted);
+        }
+        .stat-item .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.1rem;
+            word-break: break-word;
+        }
+        .stat-item .value.green {
+            color: var(--accent-green);
+        }
+        .stat-item .value.red {
+            color: var(--accent-red);
+        }
+        .stat-item .value.orange {
+            color: var(--accent-orange);
+        }
+
+        /* ─── PROGRESS BAR (ATTACK) ─── */
+        .attack-visual {
+            margin: 1rem 0 1.2rem 0;
+        }
+        .progress-track {
+            height: 1.2rem;
+            background: var(--bg-meter-track);
+            border-radius: 3rem;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-light);
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--bg-attack-bar);
+            border-radius: 3rem;
+            transition: width 0.1s linear;
+            background-image: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+        }
+        .progress-fill.cracked {
+            background: var(--accent-green);
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ─── ACTION BUTTONS ─── */
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 0.5rem 0 0.5rem 0;
+        }
+        .action-buttons button {
+            padding: 0.6rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 3rem;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+            color: #fff;
+            box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.1);
+            min-width: 7rem;
+        }
+        .action-buttons button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+        .action-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-attack {
+            background: var(--accent-red);
+        }
+        .btn-attack:hover:not(:disabled) {
+            background: #a33a2a;
+        }
+        .btn-attack.running {
+            background: var(--accent-orange);
+        }
+        .btn-attack.running:hover:not(:disabled) {
+            background: #b06a20;
+        }
+        .btn-reset-attack {
+            background: var(--text-muted);
+        }
+        .btn-reset-attack:hover:not(:disabled) {
+            background: #4a5a6a;
+        }
+
+        /* ─── FEEDBACK ─── */
+        .feedback {
+            margin-top: 1rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            display: none;
+            border-left: 4px solid transparent;
+            background: var(--bg-feedback-info);
+            color: var(--text-secondary);
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback.cracked {
+            background: var(--bg-feedback-info);
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1.1rem 0.9rem;
+            }
+            .brand h1 {
+                font-size: 1.3rem;
+            }
+            .control-section {
+                padding: 0.8rem 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.8rem 0.6rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-buttons button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app" role="main" aria-label="Brute force simulator">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🔓</span>
+                <h1>Brute Force Simulator</h1>
+            </div>
+            <div class="accessibility-controls">
+<a href="index.html" class="home-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; padding:0.4rem 0.8rem; border-radius:2rem; background:var(--accent-blue); color:#fff; border:1px solid var(--accent-blue); font-size:0.9rem; font-weight:500; min-height:2.4rem; transition:background 0.2s;">🏠 Home</a>
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">🌙</span> <span id="darkLabel">Dark</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>Simulate a brute-force attack.</strong> Adjust the password complexity and attack speed to see how long it takes to crack. Watch the progress bar move in real‑time.
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="control-section">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="lengthSlider">Password Length</label>
+                    <input type="range" id="lengthSlider" min="1" max="16" value="4" step="1" />
+                    <span class="value-display" id="lengthDisplay">4</span>
+                </div>
+                <div class="control-group">
+                    <label for="speedSlider">Attack Speed (guesses / sec)</label>
+                    <input type="range" id="speedSlider" min="3" max="12" value="6" step="1" />
+                    <span class="value-display" id="speedDisplay">1,000,000</span>
+                </div>
+            </div>
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Character Set</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="chkLower" checked /> a‑z</label>
+                        <label><input type="checkbox" id="chkUpper" checked /> A‑Z</label>
+                        <label><input type="checkbox" id="chkDigits" checked /> 0‑9</label>
+                        <label><input type="checkbox" id="chkSpecial" /> !@#$</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="label">Character Set Size</div>
+                <div class="value" id="charsetSizeDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Total Combinations</div>
+                <div class="value" id="combinationsDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Entropy (bits)</div>
+                <div class="value" id="entropyDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Estimated Crack Time</div>
+                <div class="value orange" id="timeDisplay">—</div>
+            </div>
+        </div>
+
+        <!-- ATTACK VISUAL -->
+        <div class="attack-visual">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+            </div>
+            <div class="progress-label">
+                <span id="attemptsDisplay">Attempts: 0</span>
+                <span id="progressPercent">0%</span>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-buttons">
+            <button class="btn-attack" id="btnAttack">🚀 Start Attack</button>
+            <button class="btn-reset-attack" id="btnReset">↺ Reset</button>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="feedback" id="feedback">
+            <span id="feedbackText"></span>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DOM REFS ───
+            const lengthSlider = document.getElementById('lengthSlider');
+            const lengthDisplay = document.getElementById('lengthDisplay');
+            const speedSlider = document.getElementById('speedSlider');
+            const speedDisplay = document.getElementById('speedDisplay');
+            const chkLower = document.getElementById('chkLower');
+            const chkUpper = document.getElementById('chkUpper');
+            const chkDigits = document.getElementById('chkDigits');
+            const chkSpecial = document.getElementById('chkSpecial');
+            const charsetSizeDisplay = document.getElementById('charsetSizeDisplay');
+            const combinationsDisplay = document.getElementById('combinationsDisplay');
+            const entropyDisplay = document.getElementById('entropyDisplay');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const progressFill = document.getElementById('progressFill');
+            const attemptsDisplay = document.getElementById('attemptsDisplay');
+            const progressPercent = document.getElementById('progressPercent');
+            const btnAttack = document.getElementById('btnAttack');
+            const btnReset = document.getElementById('btnReset');
+            const feedback = document.getElementById('feedback');
+            const feedbackText = document.getElementById('feedbackText');
+
+            // ─── STATE ───
+            let isRunning = false;
+            let isPaused = false;
+            let animationId = null;
+            let lastTimestamp = 0;
+            let remainingAttempts = 0; // float
+            let totalCombinations = 0;
+            let totalAttemptsSoFar = 0;
+            let elapsedTime = 0; // seconds
+            let currentSpeed = 1e6;
+            let attackStartTime = 0;
+            let cracked = false;
+
+            // ─── HELPERS ───
+            function getCharsetSize() {
+                let size = 0;
+                if (chkLower.checked) size += 26;
+                if (chkUpper.checked) size += 26;
+                if (chkDigits.checked) size += 10;
+                if (chkSpecial.checked) size += 33;
+                return size;
+            }
+
+            function formatNumber(n) {
+                if (n < 1e3) return n.toString();
+                if (n < 1e6) return (n / 1e3).toFixed(1) + 'K';
+                if (n < 1e9) return (n / 1e6).toFixed(1) + 'M';
+                if (n < 1e12) return (n / 1e9).toFixed(1) + 'B';
+                if (n < 1e15) return (n / 1e12).toFixed(1) + 'T';
+                return n.toExponential(2);
+            }
+
+            function formatTime(seconds) {
+                if (seconds < 1) return '< 1 second';
+                if (seconds < 60) return Math.round(seconds) + ' sec';
+                if (seconds < 3600) return Math.round(seconds / 60) + ' min';
+                if (seconds < 86400) return Math.round(seconds / 3600) + ' hrs';
+                if (seconds < 31536000) return Math.round(seconds / 86400) + ' days';
+                if (seconds < 31536000 * 100) return Math.round(seconds / 31536000) + ' years';
+                if (seconds < 31536000 * 10000) return Math.round(seconds / 31536000 / 1000) + 'K years';
+                return '> ' + (seconds / 31536000 / 1e6).toFixed(1) + 'M years';
+            }
+
+            function updateStats() {
+                const len = parseInt(lengthSlider.value, 10);
+                const charset = getCharsetSize();
+                const combos = charset > 0 ? Math.pow(charset, len) : 0;
+                const entropy = combos > 0 ? Math.log2(combos) : 0;
+                const speed = parseInt(speedDisplay.textContent.replace(/,/g, ''), 10);
+                const timeSec = speed > 0 && combos > 0 ? combos / speed : Infinity;
+
+                charsetSizeDisplay.textContent = charset;
+                combinationsDisplay.textContent = combos > 0 ? formatNumber(combos) : '0';
+                entropyDisplay.textContent = entropy.toFixed(1);
+                timeDisplay.textContent = combos > 0 ? formatTime(timeSec) : '∞';
+                timeDisplay.style.color = (timeSec > 31536000 * 100) ? 'var(--accent-red)' :
+                    (timeSec > 86400) ? 'var(--accent-orange)' : 'var(--accent-green)';
+            }
+
+            function resetAttack() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                isRunning = false;
+                cracked = false;
+                remainingAttempts = totalCombinations;
+                totalAttemptsSoFar = 0;
+                elapsedTime = 0;
+                progressFill.style.width = '0%';
+                progressFill.classList.remove('cracked');
+                attemptsDisplay.textContent = 'Attempts: 0';
+                progressPercent.textContent = '0%';
+                btnAttack.textContent = '🚀 Start Attack';
+                btnAttack.classList.remove('running');
+                btnAttack.disabled = false;
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'cracked');
+                feedbackText.textContent = '';
+                updateStats();
+            }
+
+            function completeAttack() {
+                isRunning = false;
+                cracked = true;
+                btnAttack.textContent = '✅ Cracked!';
+                btnAttack.classList.remove('running');
+                btnAttack.disabled = true;
+                progressFill.style.width = '100%';
+                progressFill.classList.add('cracked');
+                progressPercent.textContent = '100%';
+                attemptsDisplay.textContent = `Attempts: ${formatNumber(totalCombinations)}`;
+                feedback.className = 'feedback show cracked';
+                feedbackText.innerHTML = `🔓 <strong>Password cracked!</strong> All ${formatNumber(totalCombinations)} combinations were tried. Time taken: ${formatTime(elapsedTime)}.<br>💡 <em>Real-world lesson:</em> A password with ${parseInt(lengthSlider.value)} characters and a character set of ${getCharsetSize()} can be cracked in ${formatTime(totalCombinations / currentSpeed)} at ${formatNumber(currentSpeed)} guesses/sec.`;
+                // Update stats
+                updateStats();
+            }
+
+            // ─── ATTACK LOOP ───
+            function attackLoop(timestamp) {
+                if (!isRunning) return;
+
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                const delta = (timestamp - lastTimestamp) / 1000; // seconds
+                lastTimestamp = timestamp;
+
+                if (delta > 0.1) {
+                    // Skip huge deltas (tab switching)
+                    requestAnimationFrame(attackLoop);
+                    return;
+                }
+
+                const speed = currentSpeed;
+                let attemptsThisFrame = speed * delta;
+
+                if (remainingAttempts <= 0) {
+                    completeAttack();
+                    return;
+                }
+
+                if (attemptsThisFrame > remainingAttempts) {
+                    attemptsThisFrame = remainingAttempts;
+                }
+
+                remainingAttempts -= attemptsThisFrame;
+                totalAttemptsSoFar += attemptsThisFrame;
+                elapsedTime += delta;
+
+                // Update progress
+                const progress = totalCombinations > 0 ? totalAttemptsSoFar / totalCombinations : 0;
+                const pct = Math.min(progress * 100, 100);
+                progressFill.style.width = pct + '%';
+                progressPercent.textContent = pct.toFixed(1) + '%';
+                attemptsDisplay.textContent = `Attempts: ${formatNumber(totalAttemptsSoFar)}`;
+
+                // Check if cracked (remaining <= 0)
+                if (remainingAttempts <= 0) {
+                    completeAttack();
+                    return;
+                }
+
+                // Continue
+                animationId = requestAnimationFrame(attackLoop);
+            }
+
+            // ─── START ATTACK ───
+            function startAttack() {
+                if (isRunning) {
+                    // Pause
+                    isRunning = false;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        animationId = null;
+                    }
+                    btnAttack.textContent = '▶️ Resume';
+                    btnAttack.classList.remove('running');
+                    return;
+                }
+
+                // Resume from pause
+                if (btnAttack.textContent === '▶️ Resume') {
+                    isRunning = true;
+                    btnAttack.textContent = '⏸️ Pause';
+                    btnAttack.classList.add('running');
+                    lastTimestamp = 0;
+                    animationId = requestAnimationFrame(attackLoop);
+                    return;
+                }
+
+                // Fresh start
+                const len = parseInt(lengthSlider.value, 10);
+                const charset = getCharsetSize();
+                if (charset === 0) {
+                    alert('Please select at least one character type.');
+                    return;
+                }
+                totalCombinations = Math.pow(charset, len);
+                if (totalCombinations === 0 || totalCombinations === Infinity) {
+                    alert('Password space is too large to simulate. Try a shorter length or smaller character set.');
+                    return;
+                }
+
+                currentSpeed = parseInt(speedDisplay.textContent.replace(/,/g, ''), 10);
+                if (isNaN(currentSpeed) || currentSpeed <= 0) currentSpeed = 1e6;
+
+                // Reset state
+                remainingAttempts = totalCombinations;
+                totalAttemptsSoFar = 0;
+                elapsedTime = 0;
+                cracked = false;
+                lastTimestamp = 0;
+                progressFill.classList.remove('cracked');
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'cracked');
+                feedbackText.textContent = '';
+
+                isRunning = true;
+                btnAttack.textContent = '⏸️ Pause';
+                btnAttack.classList.add('running');
+                btnAttack.disabled = false;
+
+                // If attack would take longer than 5 seconds in real-time, we speed up the simulation visually.
+                // But we keep the time accurate.
+                // However, for extremely long times, we cap the frame stepping to avoid freezing.
+                // We'll just let the loop run naturally.
+
+                animationId = requestAnimationFrame(attackLoop);
+            }
+
+            // ─── UPDATE SPEED DISPLAY ───
+            function updateSpeedDisplay() {
+                const val = parseInt(speedSlider.value, 10);
+                const speeds = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12];
+                const idx = Math.min(val - 3, speeds.length - 1);
+                const speed = speeds[Math.max(0, idx)];
+                speedDisplay.textContent = speed.toLocaleString();
+                currentSpeed = speed;
+                updateStats();
+            }
+
+            // ─── EVENT LISTENERS ───
+            lengthSlider.addEventListener('input', function() {
+                lengthDisplay.textContent = this.value;
+                if (!isRunning) resetAttack();
+                else resetAttack(); // force reset on param change
+            });
+
+            speedSlider.addEventListener('input', function() {
+                updateSpeedDisplay();
+                if (!isRunning) {
+                    updateStats();
+                } else {
+                    // If running, reset to avoid inconsistencies
+                    resetAttack();
+                }
+            });
+
+            [chkLower, chkUpper, chkDigits, chkSpecial].forEach(chk => {
+                chk.addEventListener('change', function() {
+                    if (!isRunning) {
+                        updateStats();
+                    } else {
+                        resetAttack();
+                    }
+                });
+            });
+
+            btnAttack.addEventListener('click', startAttack);
+
+            btnReset.addEventListener('click', function() {
+                resetAttack();
+                // Also reset the progress fill smoothly
+                progressFill.style.width = '0%';
+                progressFill.classList.remove('cracked');
+                progressPercent.textContent = '0%';
+                attemptsDisplay.textContent = 'Attempts: 0';
+                btnAttack.textContent = '🚀 Start Attack';
+                btnAttack.classList.remove('running');
+                btnAttack.disabled = false;
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'cracked');
+                feedbackText.textContent = '';
+                updateStats();
+            });
+
+            // ─── ACCESSIBILITY: DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+            let darkMode = false;
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            // ─── TEXT SIZE ───
+            const htmlEl = document.documentElement;
+
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+            }
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── INIT ───
+            updateSpeedDisplay();
+            updateStats();
+            resetAttack();
+
+            console.log('🔓 Brute Force Simulator loaded!');
+        })();
+    </script>
+
+</body>
+</html>

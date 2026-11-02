@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Engineering Challenge – Cyber Security</title>
+    <style>
+        /* ─── ROOT FONT SIZE ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEMES ─── */
+        :root {
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --bg-input: #0d1117;
+            --bg-hover: #252d3f;
+            --text-primary: #e6edf3;
+            --text-secondary: #c8d4e0;
+            --text-muted: #8b949e;
+            --border-light: #30363d;
+            --border-focus: #58a6ff;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 0, 0, 0.5);
+            --bg-score: #1f2d3d;
+            --bg-feedback-correct: #1a3a2a;
+            --bg-feedback-wrong: #3a2222;
+            --bg-feedback-info: #1a2838;
+            --accent-green: #4cc090;
+            --accent-red: #e07060;
+            --accent-blue: #6a9ec8;
+            --accent-orange: #e8b040;
+            --accent-purple: #bc8cff;
+            --gradient-header: linear-gradient(145deg, #4a7a9e, #6a9ec8);
+            --icon-filter: brightness(1.2);
+            --radius-card: 2rem;
+            --message-bg: #16222e;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --bg-input: #fafcfe;
+            --bg-hover: #e1e8ed;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 20, 40, 0.12);
+            --bg-score: #f2f8ff;
+            --bg-feedback-correct: #e2f3e8;
+            --bg-feedback-wrong: #fde8e4;
+            --bg-feedback-info: #ecf5fc;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-blue: #2b6a9e;
+            --accent-orange: #c97a2a;
+            --accent-purple: #6a3e8a;
+            --gradient-header: linear-gradient(145deg, #0b2b4a, #1a4a6e);
+            --icon-filter: none;
+            --message-bg: #f8fafc;
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        .card {
+            max-width: 55rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2.1rem;
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand .icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .brand h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.4rem;
+        }
+        .accessibility-controls button:hover {
+            background: var(--bg-hover);
+        }
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .accessibility-controls .text-size-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.9rem;
+            min-width: 2.2rem;
+            justify-content: center;
+        }
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+        .home-btn {
+            background: var(--accent-blue);
+            color: #fff !important;
+            border-color: var(--accent-blue) !important;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 2.4rem;
+            transition: background 0.2s;
+        }
+        .home-btn:hover {
+            background: #1a4a7a !important;
+            border-color: #1a4a7a !important;
+        }
+
+        .sub {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── STATS ─── */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .stats .progress-text {
+            background: var(--bg-input);
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+        }
+        .stats .score-text {
+            background: var(--bg-score);
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── SCENARIO CARD ─── */
+        .scenario-card {
+            background: var(--message-bg);
+            border-radius: 1.2rem;
+            padding: 1.5rem 1.8rem;
+            border: 2px solid var(--border-light);
+            margin-bottom: 1.2rem;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .scenario-card .type-badge {
+            display: inline-block;
+            background: var(--accent-purple);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+            margin-bottom: 0.6rem;
+        }
+        .scenario-card .message {
+            font-size: 1rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .scenario-card .message .highlight {
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        /* ─── OPTIONS ─── */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin: 0.8rem 0 0.5rem 0;
+        }
+        .options-grid button {
+            padding: 0.7rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 2px solid var(--border-light);
+            border-radius: 1rem;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .options-grid button:hover:not(:disabled) {
+            border-color: var(--accent-blue);
+            background: var(--bg-hover);
+        }
+        .options-grid button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .options-grid button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .options-grid button .opt-icon {
+            font-size: 1.2rem;
+        }
+
+        /* ─── FEEDBACK ─── */
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem 1.2rem;
+            border-radius: 1rem;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            display: none;
+            border-left: 4px solid transparent;
+            transition: background 0.3s;
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback.correct {
+            background: var(--bg-feedback-correct);
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        .feedback.wrong {
+            background: var(--bg-feedback-wrong);
+            border-left-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        .feedback.info {
+            background: var(--bg-feedback-info);
+            border-left-color: var(--accent-blue);
+            color: var(--text-secondary);
+        }
+        .feedback .strong {
+            font-weight: 700;
+        }
+        .feedback .tip-block {
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ─── BOTTOM CONTROLS ─── */
+        .controls-bottom {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .controls-bottom button {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            border: 2px solid var(--border-light);
+            border-radius: 3rem;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+        }
+        .controls-bottom button:hover:not(:disabled) {
+            background: var(--bg-hover);
+        }
+        .controls-bottom button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .controls-bottom .btn-next {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .controls-bottom .btn-next:hover:not(:disabled) {
+            background: #1a4a7a;
+            border-color: #1a4a7a;
+        }
+        .controls-bottom .btn-reset {
+            background: transparent;
+        }
+        .controls-bottom button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1.1rem 0.9rem;
+                border-radius: 1.5rem;
+            }
+            .brand h1 {
+                font-size: 1.3rem;
+            }
+            .sub {
+                font-size: 0.85rem;
+            }
+            .scenario-card {
+                padding: 1rem;
+            }
+            .scenario-card .message {
+                font-size: 0.92rem;
+            }
+            .stats {
+                font-size: 0.85rem;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+        }
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.8rem 0.6rem;
+            }
+            .options-grid button {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            .controls-bottom {
+                flex-direction: column;
+            }
+            .controls-bottom button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app" role="main" aria-label="Social Engineering Challenge">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🎭</span>
+                <h1>Social Engineering Challenge</h1>
+            </div>
+            <div class="accessibility-controls">
+                <a href="index.html" class="home-btn">🏠 Home</a>
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">☀️</span> <span id="darkLabel">Light</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>Spot the manipulation.</strong> Read each scenario and choose the best response.
+            Learn to identify <strong>phishing, vishing, tailgating, USB drops, pretexting, and impersonation</strong>.
+        </div>
+
+        <!-- STATS -->
+        <div class="stats">
+            <span class="progress-text" id="progressText">Scenario 1 / 6</span>
+            <span class="score-text" id="scoreText">✅ 0 correct | ❌ 0 wrong</span>
+        </div>
+
+        <!-- SCENARIO -->
+        <div class="scenario-card" id="scenarioCard">
+            <span class="type-badge" id="typeBadge">Phishing</span>
+            <div class="message" id="messageDisplay">Loading scenario...</div>
+            <div class="options-grid" id="optionsGrid"></div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="feedback" id="feedback">
+            <span id="feedbackText"></span>
+        </div>
+
+        <!-- BOTTOM CONTROLS -->
+        <div class="controls-bottom">
+            <button class="btn-reset" id="btnReset">🔄 Reset</button>
+            <button class="btn-next" id="btnNext" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── SCENARIOS ───
+            const scenarios = [{
+                id: 1,
+                type: '📧 Phishing',
+                desc: `You receive an email from "IT Support" asking you to verify your password by clicking a link to "https://company-portal-verify.net/". The email looks official but the domain seems slightly off.
+
+        What do you do?`,
+                options: [
+                    { icon: '🔗', label: 'Click the link and verify your password' },
+                    { icon: '📞', label: 'Call IT Support directly using the number on your intranet' },
+                    { icon: '📧', label: 'Reply to the email asking for more details' },
+                ],
+                correct: 1,
+                explanation: '✅ Correct! Always verify via a known, trusted channel. The domain "company-portal-verify.net" is suspicious – the real domain should be "company.com". Never click links in unsolicited emails.',
+                tip: 'Hover over links to see the real URL. When in doubt, use a known phone number or visit the website directly (type the URL yourself).'
+            }, {
+                id: 2,
+                type: '📞 Vishing',
+                desc: `You receive a phone call from someone claiming to be from your bank's fraud department. They say there's been suspicious activity on your account and need your online banking PIN to verify your identity. They're very polite and sound professional.
+
+        What's your response?`,
+                options: [
+                    { icon: '🔑', label: 'Provide the PIN to verify your identity' },
+                    { icon: '📞', label: 'Hang up and call your bank using the number on your card' },
+                    { icon: '🤔', label: 'Ask for their employee ID and department' },
+                ],
+                correct: 1,
+                explanation: '✅ Correct! Your bank will never ask for your PIN over the phone. Hang up and call the number on the back of your card – it\'s the only number you can trust. Scammers are very convincing.',
+                tip: 'Banks never ask for PINs, passwords, or full card numbers over the phone. Always initiate the call yourself using a verified number.'
+            }, {
+                id: 3,
+                type: '🚪 Tailgating',
+                desc: `You're walking into your office building. A person in a delivery uniform is holding a large box and says they're delivering a package to the IT department. They ask you to hold the door for them because their hands are full.
+
+        What do you do?`,
+                options: [
+                    { icon: '🚪', label: 'Hold the door – they look like a legitimate delivery person' },
+                    { icon: '🆔', label: 'Ask to see their ID and delivery paperwork' },
+                    { icon: '📞', label: 'Call security to verify their delivery' },
+                ],
+                correct: 2,
+                explanation: '✅ Correct! Security is your best bet. Tailgating is a common way attackers gain physical access. Even if they look legitimate, verifying with security ensures you follow protocol.',
+                tip: 'Never hold the door for strangers, even if they look official. Always verify credentials and report suspicious activity to security.'
+            }, {
+                id: 4,
+                type: '💽 USB Drop',
+                desc: `You find a USB stick in the parking lot labelled "HR – Salaries 2026 – Confidential". Your curiosity is piqued. You have a company laptop.
+
+        What should you do?`,
+                options: [
+                    { icon: '💻', label: 'Plug it into your laptop to see what\'s on it' },
+                    { icon: '🚨', label: 'Report it to IT/security immediately' },
+                    { icon: '🗑️', label: 'Throw it in the bin – it\'s probably junk' },
+                ],
+                correct: 1,
+                explanation: '✅ Correct! USB drops are a common physical penetration testing technique. Attackers leave infected USB drives to install malware or steal data. Never plug unknown devices into company systems.',
+                tip: 'Always report found USB drives to IT/security. They have secure procedures to inspect them safely (e.g., using isolated systems).'
+            }, {
+                id: 5,
+                type: '🎭 Pretexting',
+                desc: `You receive a call from someone claiming to be from the "Security Audit Team". They say they're conducting an urgent review and need your username and password to check your account permissions. They mention your manager's name and seem to know internal jargon.
+
+        How do you respond?`,
+                options: [
+                    { icon: '🔑', label: 'Provide your credentials – they mentioned your manager' },
+                    { icon: '📞', label: 'Ask for their employee ID and call them back via the official number' },
+                    { icon: '🤷', label: 'Say you don\'t have access and hang up' },
+                ],
+                correct: 1,
+                explanation: '✅ Correct! Pretexting involves creating a fake scenario (the audit) to extract information. Always verify identities through official channels. A legitimate audit team would never ask for passwords over the phone.',
+                tip: 'Never share passwords or credentials with anyone, even if they seem to have inside information. Use multi‑factor authentication where possible.'
+            }, {
+                id: 6,
+                type: '🏢 Impersonation',
+                desc: `An unknown person walks into your office claiming to be from the "Fire Safety Inspection Team". They're wearing a high‑vis vest and carrying a clipboard. They ask to be shown to the server room to check the fire suppression system.
+
+        What do you do?`,
+                options: [
+                    { icon: '🚪', label: 'Escort them to the server room – fire safety is important' },
+                    { icon: '🆔', label: 'Ask for official ID and verify with facilities management' },
+                    { icon: '📞', label: 'Call security to escort them' },
+                ],
+                correct: 2,
+                explanation: '✅ Correct! Physical impersonation is a common tactic to gain access to restricted areas. Always involve security – they have procedures to verify visitors. Never escort strangers into sensitive areas.',
+                tip: 'All visitors should be escorted by security or a verified host. Challenge strangers politely but firmly – "Can I see your ID? I\'ll call security to assist you."'
+            }];
+
+            // ─── STATE ───
+            let currentIndex = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+            let answered = false;
+            const totalQuestions = scenarios.length;
+
+            // ─── DOM REFS ───
+            const progressText = document.getElementById('progressText');
+            const scoreText = document.getElementById('scoreText');
+            const typeBadge = document.getElementById('typeBadge');
+            const messageDisplay = document.getElementById('messageDisplay');
+            const optionsGrid = document.getElementById('optionsGrid');
+            const feedback = document.getElementById('feedback');
+            const feedbackText = document.getElementById('feedbackText');
+            const btnNext = document.getElementById('btnNext');
+            const btnReset = document.getElementById('btnReset');
+
+            // ─── RENDER ───
+            function renderScenario(index) {
+                const scenario = scenarios[index];
+                if (!scenario) {
+                    messageDisplay.textContent = '⚠️ Scenario not found.';
+                    return;
+                }
+
+                // Reset answered state
+                answered = false;
+
+                typeBadge.textContent = scenario.type;
+                messageDisplay.textContent = scenario.desc;
+
+                // Clear and rebuild options
+                optionsGrid.innerHTML = '';
+                scenario.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = `<span class="opt-icon">${opt.icon}</span> ${opt.label}`;
+                    btn.dataset.index = i;
+                    btn.addEventListener('click', function() {
+                        handleAnswer(index, i);
+                    });
+                    // Initially enabled (answered is false)
+                    btn.disabled = false;
+                    optionsGrid.appendChild(btn);
+                });
+
+                // Reset feedback
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'correct', 'wrong', 'info');
+                feedbackText.textContent = '';
+
+                // Disable Next until answered
+                btnNext.disabled = true;
+
+                // Update stats
+                progressText.textContent = `Scenario ${index+1} / ${totalQuestions}`;
+                updateScore();
+            }
+
+            function updateScore() {
+                scoreText.textContent = `✅ ${correctCount} correct | ❌ ${wrongCount} wrong`;
+            }
+
+            // ─── HANDLE ANSWER ───
+            function handleAnswer(index, optionIndex) {
+                if (answered) return;
+                const scenario = scenarios[index];
+                const isCorrect = (optionIndex === scenario.correct);
+
+                // Disable all buttons
+                document.querySelectorAll('.options-grid button').forEach(b => b.disabled = true);
+                answered = true;
+
+                if (isCorrect) {
+                    correctCount++;
+                    feedback.className = 'feedback show correct';
+                    feedbackText.innerHTML = `✅ <strong>Correct!</strong> ${scenario.explanation}`;
+                } else {
+                    wrongCount++;
+                    feedback.className = 'feedback show wrong';
+                    feedbackText.innerHTML = `❌ <strong>Incorrect.</strong> ${scenario.explanation}`;
+                }
+                feedbackText.innerHTML += `<div class="tip-block">💡 <strong>Tip:</strong> ${scenario.tip}</div>`;
+                updateScore();
+
+                // Enable Next button
+                if (currentIndex < totalQuestions - 1) {
+                    btnNext.disabled = false;
+                    btnNext.textContent = 'Next →';
+                } else {
+                    btnNext.disabled = true;
+                    btnNext.textContent = '🏁 Finish';
+                }
+            }
+
+            // ─── NEXT ───
+            function nextScenario() {
+                if (currentIndex < totalQuestions - 1) {
+                    currentIndex++;
+                    renderScenario(currentIndex);
+                    btnNext.textContent = 'Next →';
+                } else {
+                    feedback.className = 'feedback show info';
+                    feedbackText.innerHTML = `
+                🎉 <strong>You've completed all ${totalQuestions} scenarios!</strong><br>
+                ✅ Correct: ${correctCount} &nbsp;|&nbsp; ❌ Wrong: ${wrongCount}<br>
+                ${correctCount === totalQuestions ? '🌟 Perfect! You\'re a social engineering expert!' : 'Keep practicing to sharpen your skills.'}
+                <br><br>🔄 Click "Reset" to try again.
+              `;
+                    btnNext.disabled = true;
+                }
+            }
+
+            // ─── RESET ───
+            function resetGame() {
+                currentIndex = 0;
+                correctCount = 0;
+                wrongCount = 0;
+                answered = false;
+                renderScenario(0);
+                btnNext.textContent = 'Next →';
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'correct', 'wrong', 'info');
+                feedbackText.textContent = '';
+                btnNext.disabled = true;
+                updateScore();
+            }
+
+            // ─── EVENTS ───
+            btnNext.addEventListener('click', nextScenario);
+            btnReset.addEventListener('click', resetGame);
+
+            // ─── ACCESSIBILITY: DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+
+            // Default is dark (set in HTML), so sync the toggle
+            let darkMode = true;
+            darkIcon.textContent = '☀️';
+            darkLabel.textContent = 'Light';
+
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                localStorage.setItem('cyberlab-theme', darkMode ? 'dark' : 'light');
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            // Check saved preference
+            const savedTheme = localStorage.getItem('cyberlab-theme');
+            if (savedTheme === 'light') {
+                darkMode = false;
+                document.documentElement.setAttribute('data-theme', 'light');
+                darkIcon.textContent = '🌙';
+                darkLabel.textContent = 'Dark';
+            } else if (savedTheme === 'dark') {
+                darkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkIcon.textContent = '☀️';
+                darkLabel.textContent = 'Light';
+            } else {
+                // Default to dark
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkIcon.textContent = '☀️';
+                darkLabel.textContent = 'Light';
+                localStorage.setItem('cyberlab-theme', 'dark');
+            }
+
+            // ─── TEXT SIZE ───
+            const htmlEl = document.documentElement;
+
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+                localStorage.setItem('cyberlab-text-size', sizeClass);
+            }
+            const savedSize = localStorage.getItem('cyberlab-text-size');
+            if (savedSize) setTextSize(savedSize);
+
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── INIT ───
+            resetGame();
+            console.log('🎭 Social Engineering Challenge loaded – dark mode default!');
+        })();
+    </script>
+
+</body>
+</html>
