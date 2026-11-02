@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" class="text-size-normal">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phishing Simulator – Cyber Security</title>
+    <style>
+        /* ─── ROOT FONT SIZE ─── */
+        html {
+            font-size: 18px;
+        }
+        html.text-size-small {
+            font-size: 15px;
+        }
+        html.text-size-normal {
+            font-size: 18px;
+        }
+        html.text-size-large {
+            font-size: 22px;
+        }
+
+        /* ─── THEMES ─── */
+        :root {
+            --bg-body: #f0f6fc;
+            --bg-card: #ffffff;
+            --text-primary: #1a2634;
+            --text-secondary: #2c4056;
+            --text-muted: #5e768a;
+            --border-light: #d0dce8;
+            --border-focus: #2b6a9e;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 20, 40, 0.12);
+            --bg-input: #fafcfe;
+            --bg-score: #f2f8ff;
+            --bg-feedback-correct: #e2f3e8;
+            --bg-feedback-wrong: #fde8e4;
+            --bg-feedback-info: #ecf5fc;
+            --accent-green: #1e7a4a;
+            --accent-red: #b34a3a;
+            --accent-blue: #2b6a9e;
+            --gradient-header: linear-gradient(145deg, #0b2b4a, #1a4a6e);
+            --icon-filter: none;
+            --radius-card: 2rem;
+            --message-bg: #f8fafc;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121a24;
+            --bg-card: #1e2a36;
+            --text-primary: #e8edf2;
+            --text-secondary: #c8d4e0;
+            --text-muted: #8fa4b8;
+            --border-light: #3a4a5a;
+            --border-focus: #6a9ec8;
+            --shadow-card: 0 1.1rem 3.3rem rgba(0, 0, 0, 0.5);
+            --bg-input: #24303e;
+            --bg-score: #1f2d3d;
+            --bg-feedback-correct: #1a3a2a;
+            --bg-feedback-wrong: #3a2222;
+            --bg-feedback-info: #1a2838;
+            --accent-green: #4cc090;
+            --accent-red: #e07060;
+            --accent-blue: #6a9ec8;
+            --gradient-header: linear-gradient(145deg, #4a7a9e, #6a9ec8);
+            --icon-filter: brightness(1.2);
+            --message-bg: #16222e;
+        }
+
+        /* ─── RESET ─── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        .card {
+            max-width: 55rem;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 1.8rem 2.1rem;
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .brand .icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .brand h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.02rem;
+            background: var(--gradient-header);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .accessibility-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .accessibility-controls button {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 2rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            line-height: 1.2;
+            min-height: 2.4rem;
+        }
+        .accessibility-controls button:hover {
+            background: var(--border-light);
+        }
+        .accessibility-controls .text-size-group {
+            display: flex;
+            gap: 0.2rem;
+        }
+        .accessibility-controls .text-size-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.9rem;
+            min-width: 2.2rem;
+            justify-content: center;
+        }
+        .accessibility-controls button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        .sub {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+            margin-bottom: 1.2rem;
+            line-height: 1.6;
+        }
+        .sub strong {
+            color: var(--text-secondary);
+        }
+
+        /* ─── STATS ─── */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .stats .progress-text {
+            background: var(--bg-input);
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+        }
+        .stats .score-text {
+            background: var(--bg-score);
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ─── SCENARIO CARD ─── */
+        .scenario-card {
+            background: var(--message-bg);
+            border-radius: 1.2rem;
+            padding: 1.5rem 1.8rem;
+            border: 2px solid var(--border-light);
+            margin-bottom: 1.2rem;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .scenario-card .type-badge {
+            display: inline-block;
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03rem;
+            margin-bottom: 0.6rem;
+        }
+        .scenario-card .message {
+            font-size: 1rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* ─── BUTTONS ─── */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 1rem 0 0.5rem 0;
+            flex-wrap: wrap;
+        }
+        .action-buttons button {
+            padding: 0.7rem 2.2rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 3rem;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+            min-width: 8rem;
+            color: #fff;
+            box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.1);
+        }
+        .action-buttons button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+        .action-buttons .btn-phishing {
+            background: #d9534f;
+        }
+        .action-buttons .btn-phishing:hover:not(:disabled) {
+            background: #c9302c;
+        }
+        .action-buttons .btn-legitimate {
+            background: #5cb85c;
+        }
+        .action-buttons .btn-legitimate:hover:not(:disabled) {
+            background: #449d44;
+        }
+        .action-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ─── FEEDBACK ─── */
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem 1.2rem;
+            border-radius: 1rem;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            display: none;
+            border-left: 4px solid transparent;
+            transition: background 0.3s;
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback.correct {
+            background: var(--bg-feedback-correct);
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        .feedback.wrong {
+            background: var(--bg-feedback-wrong);
+            border-left-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        .feedback.info {
+            background: var(--bg-feedback-info);
+            border-left-color: var(--accent-blue);
+            color: var(--text-secondary);
+        }
+        .feedback .strong {
+            font-weight: 700;
+        }
+        .feedback .tip-block {
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ─── BOTTOM CONTROLS ─── */
+        .controls-bottom {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .controls-bottom button {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            border: 2px solid var(--border-light);
+            border-radius: 3rem;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+        }
+        .controls-bottom button:hover:not(:disabled) {
+            background: var(--border-light);
+        }
+        .controls-bottom button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .controls-bottom .btn-next {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .controls-bottom .btn-next:hover:not(:disabled) {
+            background: #1a4a7a;
+            border-color: #1a4a7a;
+        }
+        .controls-bottom .btn-reset {
+            background: transparent;
+        }
+        .controls-bottom button:focus-visible {
+            outline: 2px solid var(--border-focus);
+            outline-offset: 2px;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 700px) {
+            .card {
+                padding: 1.1rem 0.9rem;
+                border-radius: 1.5rem;
+            }
+            .brand h1 {
+                font-size: 1.3rem;
+            }
+            .sub {
+                font-size: 0.85rem;
+            }
+            .scenario-card {
+                padding: 1rem;
+            }
+            .scenario-card .message {
+                font-size: 0.92rem;
+            }
+            .action-buttons button {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.95rem;
+                min-width: 6rem;
+            }
+            .stats {
+                font-size: 0.85rem;
+            }
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+        }
+        @media (max-width: 420px) {
+            .card {
+                padding: 0.8rem 0.6rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .action-buttons button {
+                width: 100%;
+            }
+            .controls-bottom {
+                flex-direction: column;
+            }
+            .controls-bottom button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app" role="main" aria-label="Phishing simulator">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="icon">🎣</span>
+                <h1>Phishing Simulator</h1>
+            </div>
+            <div class="accessibility-controls">
+		<a href="index.html" class="home-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; padding:0.4rem 0.8rem; border-radius:2rem; background:var(--accent-blue); color:#fff; border:1px solid var(--accent-blue); font-size:0.9rem; font-weight:500; min-height:2.4rem; transition:background 0.2s;">🏠 Home</a>
+                <button id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span id="darkIcon">🌙</span> <span id="darkLabel">Dark</span>
+                </button>
+                <span class="text-size-group" role="group" aria-label="Text size controls">
+                    <button id="textSmall" aria-label="Small text">A−</button>
+                    <button id="textNormal" aria-label="Normal text">A</button>
+                    <button id="textLarge" aria-label="Large text">A+</button>
+                </span>
+            </div>
+        </header>
+
+        <div class="sub">
+            <strong>Spot the phish!</strong> Read each message and decide if it's a phishing attempt or legitimate.
+            Learn to recognise red flags.
+        </div>
+
+        <!-- STATS -->
+        <div class="stats">
+            <span class="progress-text" id="progressText">Question 1 / 16</span>
+            <span class="score-text" id="scoreText">✅ 0 correct | ❌ 0 wrong</span>
+        </div>
+
+        <!-- SCENARIO -->
+        <div class="scenario-card" id="scenarioCard">
+            <span class="type-badge" id="typeBadge">Email</span>
+            <div class="message" id="messageDisplay">
+                Loading scenario...
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-buttons" id="actionButtons">
+            <button class="btn-phishing" id="btnPhishing">⚠️ Phishing</button>
+            <button class="btn-legitimate" id="btnLegitimate">✅ Legitimate</button>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="feedback" id="feedback">
+            <span id="feedbackText"></span>
+        </div>
+
+        <!-- BOTTOM CONTROLS -->
+        <div class="controls-bottom">
+            <button class="btn-reset" id="btnReset">🔄 Reset</button>
+            <button class="btn-next" id="btnNext" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── SCENARIOS (16 total – 8 original + 8 new) ───
+            const scenarios = [{
+                id: 1,
+                type: '📧 Email',
+                message: `From: "Bank of America" <support@secure-bank-verify.com>
+        Subject: Urgent: Account Verification Required
+
+        Dear Customer,
+
+        We have detected unusual activity on your account. To prevent suspension, please verify your identity by clicking the link below immediately:
+
+        🔗 https://secure-bank-verify.com/verify
+
+        Failure to do so will result in account closure within 24 hours.
+
+        Sincerely,
+        Bank of America Security Team`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING email. The sender address is fake (secure-bank-verify.com), the link leads to a malicious site, and it creates urgency to pressure you into acting without thinking.',
+                tips: 'Always check the sender\'s full email address. Hover over links to see the real destination. Never click on unsolicited links.'
+            }, {
+                id: 2,
+                type: '📱 SMS',
+                message: `📱 SMS from "Amazon" (Number: +1 234-567-8901)
+
+        Your package #AMZ-9876 is delayed. Please update your delivery preferences here:
+        https://amaz0n-delivery-update.net/update
+
+        Reply STOP to unsubscribe.`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING SMS. The link points to a misspelled domain "amaz0n" (zero instead of "o"). Amazon uses official domains like amazon.com.',
+                tips: 'Check the domain name carefully – misspellings or extra words are common. Contact the company directly using a known phone number or website.'
+            }, {
+                id: 3,
+                type: '📧 Email',
+                message: `From: "IT Support" <it-support@your-company.com>
+        Subject: Important: Password Reset Required
+
+        Hello,
+
+        Our system detected a security breach. As a precaution, you must reset your password immediately using the internal system (https://internal.your-company.com/reset). This is a mandatory security measure.
+
+        If you have any questions, contact the IT helpdesk at extension 123.
+
+        Thank you,
+        IT Security Team`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The domain (your-company.com) is correct, the link points to an internal system, and it provides a way to verify (extension). No unusual urgency or fake sender.',
+                tips: 'Legitimate emails from your company usually come from internal domains and provide clear, verifiable contact methods. When in doubt, ask your IT team directly.'
+            }, {
+                id: 4,
+                type: '🖥️ Pop-up',
+                message: `🔴 URGENT SECURITY ALERT 🔴
+
+        Your computer is infected with a virus! Call our certified technicians immediately at 1-800-555-0199 to remove the threat and protect your data.
+
+        Do not close this window – your system is at risk.
+
+        (This pop-up appears on a website you visited.)`,
+                isPhishing: true,
+                explanation: 'This is a classic SCAREWARE phishing attempt. Legitimate antivirus software does not use random pop-ups urging you to call a number.',
+                tips: 'Never call numbers in unexpected pop-ups. Legitimate security software notifies you through its own app, not via browser pop-ups. Close your browser and run a trusted antivirus scan.'
+            }, {
+                id: 5,
+                type: '📧 Email',
+                message: `From: "LinkedIn" <notifications@linkedin.com>
+        Subject: New Connection Request
+
+        Hi there,
+
+        John Doe (Software Engineer at TechCorp) has sent you a connection request. View their profile and respond:
+        https://www.linkedin.com/in/johndoe/
+
+        You can also reply directly to this email.
+
+        Best,
+        The LinkedIn Team`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The domain linkedin.com is correct, the link goes to linkedin.com, and it\'s a standard notification. No pressure to take immediate action.',
+                tips: 'Even legitimate emails can be spoofed, so always check the sender domain. Hover over links to verify they go to the official site.'
+            }, {
+                id: 6,
+                type: '📱 SMS',
+                message: `📲 SMS from "Netflix" (Shortcode: 69878)
+
+        Your payment method has failed. Please update your billing info now to avoid service interruption:
+        https://netflix-update-billing.com/secure
+
+        Thank you for being a member.`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING SMS. The domain "netflix-update-billing.com" is not an official Netflix domain. Netflix uses netflix.com.',
+                tips: 'Official companies rarely ask for financial updates via SMS. Always navigate to the official app or website manually (e.g., type netflix.com into your browser) to check your account.'
+            }, {
+                id: 7,
+                type: '📧 Email',
+                message: `From: "Microsoft Account Team" <account-security@microsoft.com>
+        Subject: Your account was accessed from a new device
+
+        Hi,
+
+        We noticed a new sign-in to your Microsoft account from an unfamiliar device in Russia. If this was you, you can ignore this message. If not, please secure your account by changing your password immediately.
+
+        To review your recent activity, go to: https://account.microsoft.com/activity
+
+        Thanks,
+        Microsoft Account Team`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The domain microsoft.com is correct, the link goes to account.microsoft.com, and the message provides a clear, non-urgent action.',
+                tips: 'Legitimate security alerts often include specific details about the event (location, time). Always visit the official website directly rather than clicking links if you\'re unsure.'
+            }, {
+                id: 8,
+                type: '📧 Email',
+                message: `From: "IRS" <tax-refund@irs-gov.net>
+        Subject: You are eligible for a tax refund
+
+        Dear Taxpayer,
+
+        After a recent audit, we determined you are eligible for a refund of $1,237.80. To claim your refund, please fill out the form at the link below:
+
+        https://irs-gov.net/claim-refund
+
+        You must claim within 48 hours or your refund will be forfeited.
+
+        Sincerely,
+        Internal Revenue Service`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING email. The sender domain "irs-gov.net" is fake – the official IRS uses irs.gov. The urgency and promise of a large refund are common red flags.',
+                tips: 'The IRS primarily communicates via postal mail. Never click on links in emails claiming to be from government agencies. Go directly to the official website (irs.gov) to check your status.'
+            },
+            // ─── 8 NEW SCENARIOS ───
+            {
+                id: 9,
+                type: '💬 WhatsApp',
+                message: `📱 WhatsApp from "CEO Susan" (Number: +1 555-123-4567)
+
+        Hi, it's Susan from the executive team. I'm in a meeting with investors and my phone is dying. I need you to do me a quick favor – can you buy $500 in Apple Gift Cards and send me the codes? I'll reimburse you first thing tomorrow.
+
+        This is urgent – please reply ASAP.
+
+        Thanks!`,
+                isPhishing: true,
+                explanation: 'This is a classic "CEO fraud" PHISHING attempt. Attackers impersonate senior executives to pressure employees into making fraudulent purchases. A real CEO would never ask an employee to buy gift cards and send codes via text.',
+                tips: 'Always verify unusual requests from executives through a secondary channel (e.g., call them directly on their known number). Be suspicious of any request to purchase gift cards or wire money.'
+            }, {
+                id: 10,
+                type: '📧 Email',
+                message: `From: "Chase Bank" <alerts@chase.com>
+        Subject: Deposit confirmation for your account
+
+        Hello,
+
+        A deposit of $2,850.00 has been made to your checking account (ending in 7890) on 06/15/2026.
+
+        If you have any questions, please contact us at 1-800-935-9935 or view your transaction history at:
+        https://www.chase.com/activity
+
+        Thank you for banking with Chase.
+
+        Sincerely,
+        Chase Customer Service`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The sender domain (chase.com) is correct, the link goes to the official Chase website, and the message provides a clear, non-urgent notification. No request for personal information or immediate action.',
+                tips: 'Even legitimate emails can be spoofed. Always check the sender domain carefully. When possible, log in to your bank directly (type the URL yourself) rather than clicking links in emails.'
+            }, {
+                id: 11,
+                type: '📱 SMS',
+                message: `📲 SMS from "USPS" (Shortcode: 28777)
+
+        USPS Alert: Your package is being held at our facility due to an incomplete address. Please confirm your address and pay a $3.99 redelivery fee to release your package:
+
+        https://usps-redelivery-fee.com/confirm
+
+        If you do not respond within 48 hours, the package will be returned to sender.`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING SMS. The domain "usps-redelivery-fee.com" is not an official USPS domain (which is usps.com). The USPS does not charge a redelivery fee via SMS links. This is a common tactic to steal payment details.',
+                tips: 'The USPS and other carriers never ask for payment via SMS links. Always go directly to the official website (usps.com) and use your tracking number to check on a package.'
+            }, {
+                id: 12,
+                type: '📧 Email',
+                message: `From: "Coursera" <courses@coursera.org>
+        Subject: You've been enrolled in "Cybersecurity Fundamentals"
+
+        Hi there,
+
+        Your enrollment for the course "Cybersecurity Fundamentals" is now active! You can access the course materials here:
+
+        https://www.coursera.org/learn/cyber-security-fundamentals
+
+        We've sent a separate email with details on how to join the first live session. If you have any questions, please reach out to our support team at help@coursera.org.
+
+        Happy learning!
+        The Coursera Team`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The domain coursera.org is correct, the link goes to the official Coursera platform, and the message clearly explains the action with no urgency or sensitive requests.',
+                tips: 'Always verify that the sender domain matches the expected organization. If you\'re unsure about an enrollment, log directly into the platform (not through the email) to verify.'
+            }, {
+                id: 13,
+                type: '💬 LinkedIn',
+                message: `📩 LinkedIn Message from "Sarah Chen - Recruiter at TechGiant"
+
+        Hi there! I came across your profile and I'm impressed with your background. We have an urgent opening for a remote Security Analyst position with an excellent salary ($180k+).
+
+        To apply, please fill out this quick form with your personal details and Social Security Number for a background check (we need this immediately to move forward):
+
+        https://techgiant-careers-apply.net/quick-apply
+
+        This position fills quickly – apply within the next 2 hours.
+
+        Looking forward to hearing from you!
+        Sarah`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING attempt disguised as a recruiter message. Asking for a Social Security Number via an external form is a huge red flag. The domain is suspicious (techgiant-careers-apply.net). Real recruiters don\'t ask for SSNs during initial contact.',
+                tips: 'Be extremely cautious about sharing sensitive personal information. Always verify a recruiter\'s identity by checking their LinkedIn profile and company email domain. Never provide your SSN or financial details to an unverified contact.'
+            }, {
+                id: 14,
+                type: '📧 Email',
+                message: `From: "Apple" <no-reply@apple.com>
+        Subject: Your iCloud storage is 95% full
+
+        Hi,
+
+        Your iCloud storage (5 GB plan) is almost full. You are currently using 4.7 GB of 5 GB. To continue backing up your devices and photos, you may want to upgrade your storage plan:
+
+        https://support.apple.com/icloud-storage
+
+        You can also manage your storage by deleting old backups or large files.
+
+        Thanks,
+        Apple Support`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The email comes from an official Apple domain (apple.com), the link directs to support.apple.com, and it\'s a standard storage notification without any urgency or request for credentials.',
+                tips: 'Even with legitimate emails, always check the sender domain. If you\'re uncertain, go directly to your device settings or the official app to check your storage status.'
+            }, {
+                id: 15,
+                type: '📞 Voicemail',
+                message: `📞 Voicemail transcript from "Bank Fraud Department" (Caller ID: Spoofed)
+
+        "This is an urgent message from your bank's fraud department. Your credit card has been compromised and charges are being processed in Mexico. To stop these charges and secure your account, please call us back immediately at 1-888-555-0199. If you do not call us within 30 minutes, we will be forced to freeze your accounts. This is a time-sensitive matter."
+
+        (The voicemail claims to be from your bank but uses a generic greeting and a number you don't recognize.)`,
+                isPhishing: true,
+                explanation: 'This is a PHISHING voicemail (vishing – voice phishing). Scammers spoof caller IDs and create urgency to trick you into calling back and providing personal information. Real banks never demand immediate callbacks with threats of freezing accounts.',
+                tips: 'Never call back numbers left in unsolicited voicemails. Always call your bank using the phone number printed on the back of your card or the official app. Be skeptical of high-pressure threats.'
+            }, {
+                id: 16,
+                type: '📧 Email',
+                message: `From: "GitHub Security" <noreply@github.com>
+        Subject: [GitHub] Security alert: New SSH key added
+
+        Hello there,
+
+        A new SSH key (RSA key fingerprint: SHA256:abc123...xyz) was added to your GitHub account on 06/17/2026 at 14:23 UTC.
+
+        If this was you, you can safely ignore this email.
+
+        If you did not add this key, please review your security settings and revoke the key immediately:
+        https://github.com/settings/keys
+
+        You can also enable two-factor authentication to add an extra layer of security.
+
+        Thanks,
+        The GitHub Team`,
+                isPhishing: false,
+                explanation: 'This is LEGITIMATE. The email comes from an official GitHub domain (github.com), the link points to the official GitHub settings page, and the message provides clear, actionable information without urgency.',
+                tips: 'Legitimate security alerts provide specific details that you can verify (like the date, time, and fingerprint). Always enable two-factor authentication (2FA) on your accounts for added protection.'
+            }];
+
+            // ─── STATE ───
+            let currentIndex = 0;
+            let correctCount = 0;
+            let wrongCount = 0;
+            let answered = false;
+            const totalQuestions = scenarios.length;
+
+            // ─── DOM REFS ───
+            const progressText = document.getElementById('progressText');
+            const scoreText = document.getElementById('scoreText');
+            const typeBadge = document.getElementById('typeBadge');
+            const messageDisplay = document.getElementById('messageDisplay');
+            const btnPhishing = document.getElementById('btnPhishing');
+            const btnLegitimate = document.getElementById('btnLegitimate');
+            const feedback = document.getElementById('feedback');
+            const feedbackText = document.getElementById('feedbackText');
+            const btnNext = document.getElementById('btnNext');
+            const btnReset = document.getElementById('btnReset');
+
+            // ─── RENDER ───
+            function renderScenario(index) {
+                const scenario = scenarios[index];
+                if (!scenario) {
+                    messageDisplay.textContent = '⚠️ Scenario not found.';
+                    return;
+                }
+                typeBadge.textContent = scenario.type;
+                messageDisplay.textContent = scenario.message;
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'correct', 'wrong', 'info');
+                feedbackText.textContent = '';
+                btnPhishing.disabled = false;
+                btnLegitimate.disabled = false;
+                btnNext.disabled = true;
+                answered = false;
+                progressText.textContent = `Question ${index+1} / ${totalQuestions}`;
+                updateScore();
+            }
+
+            function updateScore() {
+                scoreText.textContent = `✅ ${correctCount} correct | ❌ ${wrongCount} wrong`;
+            }
+
+            // ─── HANDLE ANSWER ───
+            function handleAnswer(userSaysPhishing) {
+                if (answered) return;
+                const scenario = scenarios[currentIndex];
+                const correct = scenario.isPhishing;
+                const isCorrect = (userSaysPhishing === correct);
+
+                btnPhishing.disabled = true;
+                btnLegitimate.disabled = true;
+                answered = true;
+
+                if (isCorrect) {
+                    correctCount++;
+                    feedback.className = 'feedback show correct';
+                    feedbackText.innerHTML = `✅ <strong>Correct!</strong> ${scenario.explanation}`;
+                } else {
+                    wrongCount++;
+                    feedback.className = 'feedback show wrong';
+                    feedbackText.innerHTML = `❌ <strong>Incorrect.</strong> ${scenario.explanation}`;
+                }
+                feedbackText.innerHTML += `<div class="tip-block">💡 <strong>Tip:</strong> ${scenario.tips}</div>`;
+                updateScore();
+
+                if (currentIndex < totalQuestions - 1) {
+                    btnNext.disabled = false;
+                } else {
+                    btnNext.disabled = true;
+                    btnNext.textContent = '🏁 Finish';
+                }
+            }
+
+            // ─── NEXT ───
+            function nextScenario() {
+                if (currentIndex < totalQuestions - 1) {
+                    currentIndex++;
+                    renderScenario(currentIndex);
+                    btnNext.textContent = 'Next →';
+                } else {
+                    feedback.className = 'feedback show info';
+                    feedbackText.innerHTML = `
+                🎉 <strong>You've completed all ${totalQuestions} questions!</strong><br>
+                ✅ Correct: ${correctCount} &nbsp;|&nbsp; ❌ Wrong: ${wrongCount}<br>
+                ${correctCount === totalQuestions ? '🌟 Perfect! You\'re a phishing expert!' : 'Keep practicing to sharpen your skills.'}
+                <br><br>🔄 Click "Reset" to try again.
+              `;
+                    btnNext.disabled = true;
+                    btnPhishing.disabled = true;
+                    btnLegitimate.disabled = true;
+                }
+            }
+
+            // ─── RESET ───
+            function resetGame() {
+                currentIndex = 0;
+                correctCount = 0;
+                wrongCount = 0;
+                answered = false;
+                renderScenario(0);
+                btnNext.textContent = 'Next →';
+                feedback.className = 'feedback';
+                feedback.classList.remove('show', 'correct', 'wrong', 'info');
+                feedbackText.textContent = '';
+                btnPhishing.disabled = false;
+                btnLegitimate.disabled = false;
+                btnNext.disabled = true;
+                updateScore();
+            }
+
+            // ─── EVENT LISTENERS ───
+            btnPhishing.addEventListener('click', function() { handleAnswer(true); });
+            btnLegitimate.addEventListener('click', function() { handleAnswer(false); });
+            btnNext.addEventListener('click', nextScenario);
+            btnReset.addEventListener('click', resetGame);
+
+            // ─── ACCESSIBILITY: DARK MODE ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const darkLabel = document.getElementById('darkLabel');
+            let darkMode = false;
+            darkToggle.addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+                darkIcon.textContent = darkMode ? '☀️' : '🌙';
+                darkLabel.textContent = darkMode ? 'Light' : 'Dark';
+                this.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            });
+
+            // ─── ACCESSIBILITY: TEXT SIZE ───
+            const htmlEl = document.documentElement;
+            function setTextSize(sizeClass) {
+                htmlEl.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+                htmlEl.classList.add(sizeClass);
+            }
+            document.getElementById('textSmall').addEventListener('click', function() { setTextSize('text-size-small'); });
+            document.getElementById('textNormal').addEventListener('click', function() { setTextSize('text-size-normal'); });
+            document.getElementById('textLarge').addEventListener('click', function() { setTextSize('text-size-large'); });
+
+            // ─── START ───
+            resetGame();
+
+            console.log('🎣 Phishing Simulator loaded with 16 scenarios!');
+        })();
+    </script>
+
+</body>
+</html>
